@@ -1,0 +1,6 @@
+{
+  "name": "AniLog",
+  "description": "Your Anime. Your Memories. Your Ratings. Personal anime journal and collection manager with ratings, reviews, watchlist, collections, statistics, and review card generator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
