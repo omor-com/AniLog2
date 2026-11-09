@@ -38,6 +38,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.LockReset
+import androidx.compose.ui.res.painterResource
+import com.anilog.omor.dev.R
 import com.anilog.omor.dev.data.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -50,6 +57,7 @@ fun PasscodeLockScreen(
 ) {
     var enteredPin by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showForgotDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     Surface(
@@ -63,14 +71,15 @@ fun PasscodeLockScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = Icons.Filled.Lock,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(64.dp)
+            Image(
+                painter = painterResource(id = R.drawable.ic_anilog_logo),
+                contentDescription = "AniLog Official Logo",
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(RoundedCornerShape(16.dp))
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = "AniLog Protected",
@@ -206,6 +215,74 @@ fun PasscodeLockScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            TextButton(
+                onClick = { showForgotDialog = true },
+                modifier = Modifier.testTag("btn_forgot_passcode")
+            ) {
+                Text(
+                    text = "Forgot Passcode? / পাসওয়ার্ড ভুলে গেছেন?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
+        if (showForgotDialog) {
+            AlertDialog(
+                onDismissRequest = { showForgotDialog = false },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Filled.LockReset,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(36.dp)
+                    )
+                },
+                title = {
+                    Text(
+                        text = "Reset Forgotten Passcode?",
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "পাসওয়ার্ড ভুলে গেছেন? ফরগেট বাটনে চাপ দিলে সাথে সাথে পাসওয়ার্ড রিসেট হয়ে যাবে এবং আপনি সরাসরি অ্যাপে প্রবেশ করতে পারবেন।",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "নিরাপত্তার সুবিধার্থে ৫ মিনিট পর আপনি নতুন পাসওয়ার্ড সেট করতে পারবেন।",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                preferencesRepository.resetForgottenPasscode()
+                                showForgotDialog = false
+                                onUnlocked()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        modifier = Modifier.testTag("btn_confirm_forgot_passcode")
+                    ) {
+                        Text("Reset & Open / রিসেট ও প্রবেশ করুন")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showForgotDialog = false }) {
+                        Text("Cancel / বাতিল")
+                    }
+                }
+            )
         }
     }
 }

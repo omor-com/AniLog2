@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.OpenInNew
@@ -48,15 +49,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -82,6 +86,20 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    var currentTime by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(uiState.passcodeResetTimestamp) {
+        while (true) {
+            currentTime = System.currentTimeMillis()
+            delay(1000L)
+        }
+    }
+    val elapsedSinceReset = currentTime - uiState.passcodeResetTimestamp
+    val fiveMinutesMillis = 5 * 60 * 1000L
+    val remainingCooldownSeconds = if (uiState.passcodeResetTimestamp > 0L && elapsedSinceReset < fiveMinutesMillis) {
+        (fiveMinutesMillis - elapsedSinceReset) / 1000L
+    } else 0L
+    val isCooldownActive = remainingCooldownSeconds > 0L
 
     var showThemeMenu by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
@@ -242,7 +260,11 @@ fun SettingsScreen(
                         Switch(
                             checked = uiState.isPasscodeEnabled,
                             onCheckedChange = { enabled ->
-                                if (enabled && !uiState.hasPasscodeSet) {
+                                if (isCooldownActive) {
+                                    val m = remainingCooldownSeconds / 60
+                                    val s = remainingCooldownSeconds % 60
+                                    Toast.makeText(context, "নিরাপত্তা বিরতি সক্রিয়: ${m}m ${s}s পর নতুন পাসওয়ার্ড সেট করতে পারবেন", Toast.LENGTH_LONG).show()
+                                } else if (enabled && !uiState.hasPasscodeSet) {
                                     showSetPinDialog = true
                                 } else {
                                     viewModel.togglePasscodeEnabled(enabled)
@@ -252,7 +274,42 @@ fun SettingsScreen(
                         )
                     }
 
-                    if (uiState.hasPasscodeSet) {
+                    if (isCooldownActive) {
+                        val minutes = remainingCooldownSeconds / 60
+                        val seconds = remainingCooldownSeconds % 60
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Surface(
+                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.HourglassTop,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = "পাসওয়ার্ড রিসেট হয়েছে (Security Cooldown)",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                    Text(
+                                        text = "নতুন পাসওয়ার্ড সেট করতে পারবেন: ${minutes}m ${seconds}s পর",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                }
+                            }
+                        }
+                    } else if (uiState.hasPasscodeSet) {
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedButton(
                             onClick = { showSetPinDialog = true },
@@ -430,13 +487,13 @@ fun SettingsScreen(
                 confirmButton = {
                     Button(
                         onClick = {
-                            if (newPinInput.length == 4) {
+                            if (newPinInput.length == 4 && !isCooldownActive) {
                                 viewModel.setPasscode(newPinInput)
                                 showSetPinDialog = false
                                 newPinInput = ""
                             }
                         },
-                        enabled = newPinInput.length == 4,
+                        enabled = newPinInput.length == 4 && !isCooldownActive,
                         modifier = Modifier.testTag("btn_confirm_pin")
                     ) {
                         Text("Save PIN")

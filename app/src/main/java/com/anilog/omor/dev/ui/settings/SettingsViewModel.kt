@@ -15,7 +15,8 @@ data class SettingsUiState(
     val themeMode: AppThemeMode = AppThemeMode.SYSTEM,
     val defaultSort: SortOption = SortOption.HIGHEST_RATED,
     val isPasscodeEnabled: Boolean = false,
-    val hasPasscodeSet: Boolean = false
+    val hasPasscodeSet: Boolean = false,
+    val passcodeResetTimestamp: Long = 0L
 )
 
 class SettingsViewModel(
@@ -26,19 +27,25 @@ class SettingsViewModel(
         preferencesRepository.themeMode,
         preferencesRepository.defaultSort,
         preferencesRepository.isPasscodeEnabled,
-        preferencesRepository.passcodeHash
-    ) { theme, sort, isPassEnabled, hash ->
+        preferencesRepository.passcodeHash,
+        preferencesRepository.passcodeResetTimestamp
+    ) { theme, sort, isPassEnabled, hash, resetTimestamp ->
         SettingsUiState(
             themeMode = theme,
             defaultSort = sort,
             isPasscodeEnabled = isPassEnabled,
-            hasPasscodeSet = !hash.isNullOrBlank()
+            hasPasscodeSet = !hash.isNullOrBlank(),
+            passcodeResetTimestamp = resetTimestamp
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = SettingsUiState()
     )
+
+    fun getRemainingCooldownSeconds(): Long {
+        return preferencesRepository.getRemainingCooldownSeconds(uiState.value.passcodeResetTimestamp)
+    }
 
     fun setThemeMode(mode: AppThemeMode) {
         viewModelScope.launch {

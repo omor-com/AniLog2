@@ -24,6 +24,7 @@ class UserPreferencesRepository(private val context: Context) {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val PASSCODE_HASH = stringPreferencesKey("passcode_hash")
         val PASSCODE_ENABLED = booleanPreferencesKey("passcode_enabled")
+        val PASSCODE_RESET_TIMESTAMP = androidx.datastore.preferences.core.longPreferencesKey("passcode_reset_timestamp")
         val DEFAULT_SORT = stringPreferencesKey("default_sort")
         val IS_GRID_VIEW = booleanPreferencesKey("is_grid_view")
     }
@@ -50,6 +51,14 @@ class UserPreferencesRepository(private val context: Context) {
         }
         .map { preferences ->
             preferences[PreferencesKeys.PASSCODE_HASH]
+        }
+
+    val passcodeResetTimestamp: Flow<Long> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences ->
+            preferences[PreferencesKeys.PASSCODE_RESET_TIMESTAMP] ?: 0L
         }
 
     val defaultSort: Flow<SortOption> = context.dataStore.data
@@ -82,8 +91,25 @@ class UserPreferencesRepository(private val context: Context) {
             } else {
                 preferences[PreferencesKeys.PASSCODE_HASH] = hashPin(pin)
                 preferences[PreferencesKeys.PASSCODE_ENABLED] = true
+                preferences[PreferencesKeys.PASSCODE_RESET_TIMESTAMP] = 0L
             }
         }
+    }
+
+    suspend fun resetForgottenPasscode() {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.PASSCODE_HASH] = ""
+            preferences[PreferencesKeys.PASSCODE_ENABLED] = false
+            preferences[PreferencesKeys.PASSCODE_RESET_TIMESTAMP] = System.currentTimeMillis()
+        }
+    }
+
+    fun getRemainingCooldownSeconds(resetTimestamp: Long): Long {
+        if (resetTimestamp <= 0L) return 0L
+        val elapsed = System.currentTimeMillis() - resetTimestamp
+        val fiveMinutesMillis = 5 * 60 * 1000L // 300,000 ms
+        val remainingMillis = fiveMinutesMillis - elapsed
+        return if (remainingMillis > 0L) (remainingMillis / 1000L) else 0L
     }
 
     suspend fun setPasscodeEnabled(enabled: Boolean) {
