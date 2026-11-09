@@ -371,7 +371,7 @@ class BackupManager(
                     continue
                 }
 
-                val coverFileName = obj.optString("coverFileName", null)
+                val coverFileName = if (obj.has("coverFileName") && !obj.isNull("coverFileName")) obj.optString("coverFileName") else null
                 val localCoverPath = if (!coverFileName.isNullOrBlank()) {
                     extractedCovers[coverFileName] ?: File(coversDir, coverFileName).takeIf { it.exists() }?.absolutePath
                 } else null
