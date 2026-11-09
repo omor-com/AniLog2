@@ -47,8 +47,14 @@ jobs:
           fi
           ls -lh debug.keystore
 
-      - name: Grant Execute Permission to Gradle Wrapper
-        run: chmod +x gradlew
+      - name: Validate and Grant Execute Permission to Gradle Wrapper
+        run: |
+          if [ ! -f "gradlew" ] || [ ! -f "gradle/wrapper/gradle-wrapper.jar" ]; then
+            echo "WARNING: Gradle wrapper missing from checkout. Generating compatible Gradle 9.3.1 wrapper..."
+            gradle wrapper --gradle-version 9.3.1 --distribution-type bin
+          fi
+          chmod +x gradlew
+          ./gradlew -v
 
       - name: Run Unit Tests
         run: ./gradlew testDebugUnitTest --continue --stacktrace
