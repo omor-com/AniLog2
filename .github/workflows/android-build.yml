@@ -74,7 +74,13 @@ jobs:
             ${{ runner.os }}-robolectric-
 
       - name: Run Unit Tests
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: |
+          # Use xvfb-run to provide virtual display for headless AWT / KSP in CI environments
+          if command -v xvfb-run > /dev/null 2>&1; then
+            xvfb-run -a ./gradlew testDebugUnitTest -Djava.awt.headless=true --stacktrace
+          else
+            ./gradlew testDebugUnitTest -Djava.awt.headless=true --stacktrace
+          fi
 
       - name: Run Lint Checks
         run: ./gradlew lintDebug --stacktrace

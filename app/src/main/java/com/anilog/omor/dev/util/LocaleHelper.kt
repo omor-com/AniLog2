@@ -11,7 +11,7 @@ object LocaleHelper {
     const val LANGUAGE_BENGALI = "bn"
 
     fun setLocale(context: Context, languageCode: String): Context {
-        val targetLocale = if (languageCode == LANGUAGE_BENGALI) Locale("bn") else Locale.ENGLISH
+        val targetLocale = if (languageCode == LANGUAGE_BENGALI) Locale.forLanguageTag("bn") else Locale.ENGLISH
         Locale.setDefault(targetLocale)
 
         val resources = context.resources
@@ -28,7 +28,7 @@ object LocaleHelper {
     }
 
     fun applyConfiguration(context: Context, languageCode: String) {
-        val targetLocale = if (languageCode == LANGUAGE_BENGALI) Locale("bn") else Locale.ENGLISH
+        val targetLocale = if (languageCode == LANGUAGE_BENGALI) Locale.forLanguageTag("bn") else Locale.ENGLISH
         Locale.setDefault(targetLocale)
 
         val resources = context.resources
