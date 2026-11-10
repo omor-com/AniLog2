@@ -1,5 +1,8 @@
 package com.anilog.omor.dev.ui.library
 
+import androidx.compose.ui.res.stringResource
+import com.anilog.omor.dev.R
+
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -80,7 +83,7 @@ fun LibraryScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "My Anime Library",
+                        text = stringResource(R.string.nav_library),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -100,6 +103,7 @@ fun LibraryScreen(
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
                                         .size(16.dp)
+                                        .testTag("filter_badge_count")
                                 ) {
                                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                                         Text(
@@ -259,7 +263,7 @@ fun LibraryScreen(
                 )
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 104.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier
                         .fillMaxSize()

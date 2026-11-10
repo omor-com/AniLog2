@@ -305,6 +305,9 @@ class AnimeRepository(
     companion object {
         fun sortAnimeList(list: List<AnimeEntity>, sortOption: SortOption): List<AnimeEntity> {
             return when (sortOption) {
+                SortOption.RAFAEL_RANKING -> com.anilog.omor.dev.domain.ranking.RafaelRankingEngine
+                    .rankAnime(list)
+                    .map { it.anime }
                 SortOption.HIGHEST_RATED -> list.sortedWith(
                     compareByDescending<AnimeEntity> { it.personalRating ?: -1f }
                         .thenByDescending { it.createdAt }

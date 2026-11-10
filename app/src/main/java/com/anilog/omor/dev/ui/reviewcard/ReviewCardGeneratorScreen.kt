@@ -27,8 +27,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -51,10 +49,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.anilog.omor.dev.R
+import com.anilog.omor.dev.domain.model.CardAspectRatio
 import com.anilog.omor.dev.domain.model.CardTemplate
+import com.anilog.omor.dev.util.RatingFormatHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,13 +73,19 @@ fun ReviewCardGeneratorScreen(
         viewModel.loadAnime(context)
     }
 
+    val previewRatio = when (uiState.customization.aspectRatio) {
+        CardAspectRatio.PORTRAIT -> 4f / 5f
+        CardAspectRatio.SQUARE -> 1f
+        CardAspectRatio.LANDSCAPE -> 16f / 9f
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Review Card Generator",
+                        text = stringResource(R.string.action_sharing_studio),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -110,7 +118,7 @@ fun ReviewCardGeneratorScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(4f / 5f)
+                    .aspectRatio(previewRatio)
                     .clip(RoundedCornerShape(20.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                     .testTag("review_card_preview_box"),
@@ -120,7 +128,7 @@ fun ReviewCardGeneratorScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator()
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Rendering high-res card...", style = MaterialTheme.typography.bodySmall)
+                        Text("Rendering high-res card…", style = MaterialTheme.typography.bodySmall)
                     }
                 } else if (uiState.previewBitmap != null) {
                     Image(
@@ -129,18 +137,41 @@ fun ReviewCardGeneratorScreen(
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    Text("Preparing card...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Preparing card…", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
-            // Template Selector (5 Designs)
+            // Aspect Ratio Selector (Portrait, Square, Landscape)
             Column {
                 Text(
-                    text = "Select Design Template",
+                    text = "Card Format / আকার",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CardAspectRatio.entries.forEach { ratio ->
+                        FilterChip(
+                            selected = uiState.customization.aspectRatio == ratio,
+                            onClick = { viewModel.selectAspectRatio(ratio, context) },
+                            label = { Text(ratio.displayName) },
+                            modifier = Modifier.testTag("aspect_chip_${ratio.name.lowercase()}")
+                        )
+                    }
+                }
+            }
+
+            // Template Selector (9 Designs)
+            Column {
+                Text(
+                    text = "Select Design Theme / থিম নির্বাচন",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(6.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -149,7 +180,7 @@ fun ReviewCardGeneratorScreen(
                 ) {
                     CardTemplate.entries.forEach { template ->
                         FilterChip(
-                            selected = uiState.selectedTemplate == template,
+                            selected = uiState.customization.template == template,
                             onClick = { viewModel.selectTemplate(template, context) },
                             label = { Text(template.displayName) },
                             modifier = Modifier.testTag("template_chip_${template.name.lowercase()}")
@@ -160,10 +191,10 @@ fun ReviewCardGeneratorScreen(
 
             // Custom Excerpt Adjustment
             OutlinedTextField(
-                value = uiState.customExcerpt,
+                value = uiState.customization.customExcerpt ?: "",
                 onValueChange = { viewModel.onExcerptChanged(it, context) },
-                label = { Text("Shared Review Excerpt") },
-                placeholder = { Text("Adjust the excerpt shown on the card without altering your saved review...") },
+                label = { Text("Shared Review Excerpt / প্রদর্শিত রিভিউ") },
+                placeholder = { Text("Adjust the excerpt shown on the card without altering your saved review…") },
                 minLines = 2,
                 maxLines = 4,
                 modifier = Modifier
@@ -171,17 +202,73 @@ fun ReviewCardGeneratorScreen(
                     .testTag("input_card_excerpt")
             )
 
-            // Optional Toggles
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Include Finish Date", style = MaterialTheme.typography.bodyMedium)
-                Switch(
-                    checked = uiState.includeDate,
-                    onCheckedChange = { viewModel.toggleIncludeDate(context) }
+            // Optional Field Toggles
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    text = "Information Visibility / তথ্যের প্রদর্শন",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
                 )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Cover Artwork / কভার ছবি", style = MaterialTheme.typography.bodyMedium)
+                    Switch(
+                        checked = uiState.customization.showCover,
+                        onCheckedChange = { viewModel.toggleCover(context) }
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Personal Rating / ব্যক্তিগত রেটিং", style = MaterialTheme.typography.bodyMedium)
+                    Switch(
+                        checked = uiState.customization.showRating,
+                        onCheckedChange = { viewModel.toggleRating(context) }
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Review Excerpt / রিভিউ টেক্সট", style = MaterialTheme.typography.bodyMedium)
+                    Switch(
+                        checked = uiState.customization.showReview,
+                        onCheckedChange = { viewModel.toggleReview(context) }
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Rafael Rank Badge / রাফায়েল র‍্যাঙ্ক ব্যাজ", style = MaterialTheme.typography.bodyMedium)
+                    Switch(
+                        checked = uiState.customization.showRafaelRank,
+                        onCheckedChange = { viewModel.toggleRafaelRank(context) }
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Finish Date / সমাপ্তির তারিখ", style = MaterialTheme.typography.bodyMedium)
+                    Switch(
+                        checked = uiState.customization.showDate,
+                        onCheckedChange = { viewModel.toggleIncludeDate(context) }
+                    )
+                }
             }
 
             // Share & Export Actions
@@ -195,13 +282,13 @@ fun ReviewCardGeneratorScreen(
                             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                                 type = "image/png"
                                 putExtra(Intent.EXTRA_STREAM, uri)
-                                val score = anime?.personalRating?.let { "★ ${"%.1f".format(it)}/10" } ?: ""
+                                val score = anime?.personalRating?.let { "★ ${RatingFormatHelper.formatRating(it)}/10" } ?: ""
                                 putExtra(Intent.EXTRA_TEXT, "${anime?.title ?: "Anime"} $score — AniLog Review")
                                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }
                             context.startActivity(Intent.createChooser(shareIntent, "Share Review Card Image"))
                         } else {
-                            Toast.makeText(context, "Rendering card, please wait...", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Rendering card, please wait…", Toast.LENGTH_SHORT).show()
                         }
                     },
                     modifier = Modifier
@@ -211,7 +298,7 @@ fun ReviewCardGeneratorScreen(
                 ) {
                     Icon(Icons.Filled.Share, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Share Review Card Image")
+                    Text(stringResource(R.string.share_image))
                 }
 
                 Row(
@@ -222,7 +309,7 @@ fun ReviewCardGeneratorScreen(
                     FilledTonalButton(
                         onClick = {
                             viewModel.saveCardPermanently(context) { file ->
-                                Toast.makeText(context, "Card saved to ${file.name}", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "Saved: ${file.name}", Toast.LENGTH_LONG).show()
                             }
                         },
                         modifier = Modifier
@@ -232,18 +319,18 @@ fun ReviewCardGeneratorScreen(
                     ) {
                         Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Save Image")
+                        Text(stringResource(R.string.save_image))
                     }
 
-                    // Share review text fallback
+                    // Share review text
                     OutlinedButton(
                         onClick = {
                             val anime = uiState.anime
                             if (anime != null) {
                                 val textIntent = Intent(Intent.ACTION_SEND).apply {
                                     type = "text/plain"
-                                    val score = anime.personalRating?.let { "★ ${"%.1f".format(it)}/10" } ?: "Unrated"
-                                    val text = "${anime.title} — $score\n\n“${uiState.customExcerpt}”\n\nShared via AniLog Personal Anime Journal"
+                                    val score = anime.personalRating?.let { "★ ${RatingFormatHelper.formatRating(it)}/10" } ?: "Unrated"
+                                    val text = "${anime.title} — $score\n\n“${uiState.customization.customExcerpt}”\n\nShared via AniLog Personal Anime Library"
                                     putExtra(Intent.EXTRA_TEXT, text)
                                 }
                                 context.startActivity(Intent.createChooser(textIntent, "Share Review Text"))
@@ -256,7 +343,7 @@ fun ReviewCardGeneratorScreen(
                     ) {
                         Icon(Icons.Filled.TextFields, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Share Text")
+                        Text(stringResource(R.string.share_text))
                     }
                 }
             }

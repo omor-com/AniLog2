@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.anilog.omor.dev.data.repository.UserPreferencesRepository
 import com.anilog.omor.dev.domain.model.AppThemeMode
 import com.anilog.omor.dev.domain.model.SortOption
+import com.anilog.omor.dev.util.LocaleHelper
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -13,39 +14,70 @@ import kotlinx.coroutines.launch
 
 data class SettingsUiState(
     val themeMode: AppThemeMode = AppThemeMode.SYSTEM,
-    val defaultSort: SortOption = SortOption.HIGHEST_RATED,
+    val defaultSort: SortOption = SortOption.RAFAEL_RANKING,
     val isPasscodeEnabled: Boolean = false,
     val hasPasscodeSet: Boolean = false,
-    val passcodeResetTimestamp: Long = 0L
+    val recoveryDurationMinutes: Int = 5,
+    val activeRecoveryDeadline: Long = 0L,
+    val appLanguage: String = LocaleHelper.LANGUAGE_ENGLISH,
+    val rafaelEnabled: Boolean = true
+)
+
+private data class GeneralPrefs(
+    val theme: AppThemeMode,
+    val sort: SortOption,
+    val lang: String,
+    val rafael: Boolean
+)
+
+private data class SecurityPrefs(
+    val isPassEnabled: Boolean,
+    val hash: String?,
+    val duration: Int,
+    val deadline: Long
 )
 
 class SettingsViewModel(
     private val preferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
-    val uiState: StateFlow<SettingsUiState> = combine(
+    private val generalFlow = combine(
         preferencesRepository.themeMode,
         preferencesRepository.defaultSort,
+        preferencesRepository.appLanguage,
+        preferencesRepository.rafaelEnabled
+    ) { theme, sort, lang, rafael ->
+        GeneralPrefs(theme, sort, lang, rafael)
+    }
+
+    private val securityFlow = combine(
         preferencesRepository.isPasscodeEnabled,
         preferencesRepository.passcodeHash,
-        preferencesRepository.passcodeResetTimestamp
-    ) { theme, sort, isPassEnabled, hash, resetTimestamp ->
+        preferencesRepository.recoveryDurationMinutes,
+        preferencesRepository.activeRecoveryDeadline
+    ) { isPassEnabled, hash, duration, deadline ->
+        SecurityPrefs(isPassEnabled, hash, duration, deadline)
+    }
+
+    val uiState: StateFlow<SettingsUiState> = combine(
+        generalFlow,
+        securityFlow
+    ) { general, security ->
         SettingsUiState(
-            themeMode = theme,
-            defaultSort = sort,
-            isPasscodeEnabled = isPassEnabled,
-            hasPasscodeSet = !hash.isNullOrBlank(),
-            passcodeResetTimestamp = resetTimestamp
+            themeMode = general.theme,
+            defaultSort = general.sort,
+            isPasscodeEnabled = security.isPassEnabled,
+            hasPasscodeSet = !security.hash.isNullOrBlank(),
+            recoveryDurationMinutes = security.duration,
+            activeRecoveryDeadline = security.deadline,
+            appLanguage = general.lang,
+            rafaelEnabled = general.rafael
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = SettingsUiState()
     )
-
-    fun getRemainingCooldownSeconds(): Long {
-        return preferencesRepository.getRemainingCooldownSeconds(uiState.value.passcodeResetTimestamp)
-    }
 
     fun setThemeMode(mode: AppThemeMode) {
         viewModelScope.launch {
@@ -56,6 +88,18 @@ class SettingsViewModel(
     fun setDefaultSort(sort: SortOption) {
         viewModelScope.launch {
             preferencesRepository.setDefaultSort(sort)
+        }
+    }
+
+    fun setAppLanguage(languageCode: String) {
+        viewModelScope.launch {
+            preferencesRepository.setAppLanguage(languageCode)
+        }
+    }
+
+    fun setRecoveryDurationMinutes(minutes: Int) {
+        viewModelScope.launch {
+            preferencesRepository.setRecoveryDurationMinutes(minutes)
         }
     }
 

@@ -1,0 +1,1022 @@
+AniLog — Ultimate Master Prompt
+
+Complete Bilingual Anime Library, Rafael Intelligent Ranking Engine, Premium Sharing Studio, Custom Ratings, Bulk Management, and Secure Recovery
+
+Role: Act as a senior Android engineer, Kotlin and Jetpack Compose architect, Material 3 UI/UX designer, database engineer, localization specialist, Android graphics and sharing engineer, ranking-algorithm developer, security engineer, and QA specialist.
+
+I have an existing native Android application called AniLog. It already has an established architecture, existing functionality, stored data, branding, and a GitHub Actions build workflow.
+
+Your task is to enhance the existing application with the features specified in this document.
+
+This is an in-place upgrade of an existing application, NOT a request to rebuild it from scratch.
+
+Inspect the actual repository before making changes. Preserve every existing working feature, database record, application setting, and branding element that is unrelated to the requested enhancements.
+
+---
+
+SECTION 1 — OFFICIAL PROJECT IDENTITY
+
+Keep these values unchanged:
+
+- App name: AniLog
+- Application ID: "com.anilog.omor.dev"
+- Kotlin namespace: "com.anilog.omor.dev"
+- Developer: Muhammed Omor
+- Tagline: Your Anime. Your Memories. Your Ratings.
+- Shop: https://muhammedomor.supportkori.shop/
+- Support email: muhammedomor.studio@gmail.com
+
+Preserve the existing official A logo and the current application identity.
+
+Do not change the package name, namespace, or developer information.
+
+Do not replace the official logo with an unrelated design.
+
+SECTION 2 — INSPECT THE EXISTING PROJECT FIRST
+
+Before editing any files:
+
+1. Inspect the complete repository structure.
+2. Read the existing Gradle configuration and GitHub Actions workflow.
+3. Identify the current architecture, navigation, screens, database entities, repositories, and persistent storage.
+4. Inspect existing localization, ratings, Anime lists, editing, import/export, sharing, and passcode recovery.
+5. Identify existing components that can be extended instead of duplicated.
+6. Establish the current build and test status when possible.
+7. Create a list of the exact files that need modification and explain why.
+
+Use the current project's architecture and coding conventions.
+
+If the app already uses Kotlin, Jetpack Compose, Room, DataStore, coroutines, and Flow, extend those systems rather than introducing competing architectures.
+
+Do not add unnecessary dependencies or replace working implementations with placeholders.
+
+---
+
+SECTION 3 — COMPLETE ENGLISH AND BANGLA LOCALIZATION
+
+3.1 First-launch language selection
+
+On the first launch, show a language-selection screen before entering the main application.
+
+Provide two choices:
+
+- English
+- বাংলা
+
+Persist the selected language.
+
+Do not show the selection screen on every launch.
+
+Existing users with a saved language preference should retain it. Do not reset existing data or preferences.
+
+3.2 Entire application localization
+
+The selected language must apply consistently to all application-owned text, including:
+
+- Home and Anime Library.
+- Add Anime and Edit Anime.
+- Anime details and reviews.
+- Search, filters, sorting, and collections.
+- Custom ratings.
+- Bulk import and export.
+- Rafael ranking settings and explanations.
+- Sharing Studio and theme selection.
+- Preview screens and generated-card controls.
+- Settings and About.
+- Privacy lock and Forgot Passcode.
+- Recovery countdown.
+- Confirmation dialogs.
+- Validation messages.
+- Empty states, loading states, errors, and notifications.
+
+Do not leave ordinary UI text unintentionally hardcoded in one language.
+
+Preserve user-generated Anime titles, reviews, comments, and tags exactly as entered. Do not translate user content automatically.
+
+3.3 Natural Bangladeshi Bengali
+
+Use correct, natural, standard Bangladeshi Bengali that ordinary users in Bangladesh understand.
+
+Avoid awkward literal translations, spelling mistakes, broken Unicode, and unnecessarily formal vocabulary.
+
+Use consistent terminology, for example:
+
+English| বাংলা
+Anime Library| অ্যানিমে লাইব্রেরি
+Add Anime| অ্যানিমে যোগ করুন
+Edit Anime| অ্যানিমে সম্পাদনা করুন
+Custom Rating| নিজের মতো রেটিং দিন
+Personal Review| ব্যক্তিগত রিভিউ
+Share Anime| অ্যানিমে শেয়ার করুন
+Sharing Studio| শেয়ারিং স্টুডিও
+Smart Ranking| বুদ্ধিমান র‍্যাঙ্কিং
+Language| ভাষা
+Settings| সেটিংস
+Bulk Import| একসঙ্গে অনেক অ্যানিমে যোগ করুন
+Export| এক্সপোর্ট
+Favorites| পছন্দের তালিকা
+Forgot Passcode?| পাসকোড ভুলে গেছেন?
+
+Review the entire app for consistent translations.
+
+3.4 Change language at any time
+
+Add a Language option to the existing Settings screen.
+
+Users must be able to switch between English and Bengali at any time.
+
+Update the interface immediately where practical, persist the choice, and preserve all existing data.
+
+Prefer Android string resources such as "values/strings.xml" and "values-bn/strings.xml", adapted to the existing architecture.
+
+---
+
+SECTION 4 — FIX ANIME LIST VISIBILITY AND LAYOUT
+
+This is a high-priority UI issue.
+
+Currently, when I add an item to a list, the entry can appear too close to the bottom of the screen, partly hidden, clipped, or outside the visible screen area.
+
+Fix the underlying layout problem rather than simply changing the text size.
+
+4.1 Correct list rendering
+
+Inspect the actual list and navigation implementations.
+
+Ensure:
+
+- Newly added Anime entries are completely visible.
+- Cards do not extend beyond the screen bounds.
+- The bottom-most entry is not hidden behind the bottom navigation bar.
+- Floating action buttons do not cover list content.
+- Dialogs and input fields remain visible when the keyboard opens.
+- Long Anime titles wrap or truncate gracefully.
+- Rating values and action buttons do not overflow their cards.
+- List spacing, margins, padding, and card dimensions remain consistent.
+- The last list item can be reached and viewed by scrolling.
+- Empty states and loading indicators appear in the correct positions.
+- Lists work on small Android screens and different display sizes.
+- Both English and Bengali text fit correctly.
+- Dark, light, and AMOLED themes remain usable where already supported.
+
+4.2 Correct scrolling and insets
+
+Use the existing Jetpack Compose layout architecture appropriately.
+
+Inspect "Scaffold", "LazyColumn", "LazyVerticalGrid", "contentPadding", system-bar insets, navigation-bar insets, IME insets, and nested scrolling where relevant.
+
+Avoid double-applying padding or incorrectly measuring available screen height.
+
+If a list uses a bottom navigation bar, account for the bar and system navigation area so the final entry is not obscured.
+
+If the app automatically scrolls to a newly added item, ensure the behavior is intentional and the entry remains fully visible.
+
+Do not force unwanted scrolling when the user is editing an unrelated entry.
+
+4.3 Preserve the existing design
+
+Keep the current AniLog design language.
+
+Do not redesign unrelated screens.
+
+Use professional card spacing, readable typography, appropriate contrast, and clean alignment.
+
+Acceptance test: Add several Anime entries, including long titles, scroll to the final entry, open and close the keyboard, switch languages, and verify that no entry or important control is clipped or hidden.
+
+---
+
+SECTION 5 — FULLY CUSTOMIZABLE ANIME RATINGS
+
+5.1 Rating range
+
+Allow any valid decimal rating from 0 to 10, inclusive.
+
+Examples:
+
+- 0
+- 0.1
+- 0.25
+- 1.37
+- 4.68
+- 7.123
+- 9.99
+- 10
+
+Do not restrict ratings to whole numbers, half-stars, or predefined increments.
+
+Do not round valid values automatically.
+
+5.2 Custom Rating button
+
+Add a clearly accessible Custom Rating button to the existing Add Anime and Edit Anime screens.
+
+English: "Custom Rating"
+
+Bengali: "নিজের মতো রেটিং দিন"
+
+Provide a decimal numeric input.
+
+Reject negative values, values greater than 10, invalid text, NaN, and infinity.
+
+Support appropriate decimal-separator handling and localized validation messages.
+
+5.3 Preserve exact values
+
+Inspect the existing database representation.
+
+Use the existing representation if it supports the requirement safely. Otherwise, introduce a backward-compatible migration.
+
+Preserve existing ratings and records.
+
+Avoid unintended precision loss when storing, displaying, sorting, comparing, importing, and exporting ratings.
+
+The exact saved value must remain consistent throughout the application, including review cards and Rafael's ranking calculations.
+
+Star icons may visualize a rating but must not replace its underlying numeric value.
+
+---
+
+SECTION 6 — RAFAEL: INTELLIGENT ANIME RANKING ENGINE
+
+Create an internal feature named Rafael.
+
+Rafael is AniLog's personal Anime ranking engine. Its purpose is to help the user organize Anime according to what the user likes most, especially when multiple Anime have exactly the same rating.
+
+Rafael must be a genuine, implemented ranking system, not merely a decorative AI label.
+
+6.1 Core objective
+
+The primary ranking should reflect the user's personal ratings and preferences.
+
+The default order should be:
+
+1. Higher personal rating first.
+2. Lower personal rating later.
+
+When two or more Anime have exactly the same rating, Rafael must determine their relative order using available user-specific evidence.
+
+For example, if several Anime are rated 9.0, Rafael should try to determine which one the user appears to prefer based on saved data.
+
+Do not assign a higher rank simply because a title is more popular or famous.
+
+Do not use external popularity as a substitute for personal preference.
+
+6.2 Deterministic tie-breaking logic
+
+Implement a transparent tie-breaking system.
+
+Inspect which fields already exist in the database. Use only available and relevant evidence.
+
+Possible tie-break signals include:
+
+- Explicit user preference or a manually selected ranking.
+- User's pairwise preference between two Anime.
+- Favorite status, if the user chooses to use it as a ranking signal.
+- Personal review sentiment, if reliably available through a transparent local heuristic.
+- Watch status or completion, if the user enables these as ranking preferences.
+- Repeated explicit ranking adjustments or saved feedback.
+- Existing user-defined priority.
+- A stable final tie-break rule when no preference evidence exists.
+
+Do not pretend that unobserved preferences are known.
+
+If no meaningful evidence exists, keep the ordering stable and explain that Rafael needs more information.
+
+6.3 Rafael's algorithm
+
+Use an understandable algorithm that fits the project's architecture.
+
+Possible implementation components include:
+
+- Conditional rules such as "if/else".
+- Iteration and loops.
+- Grouping by exact rating.
+- Stable sorting.
+- Weighted scoring.
+- Explicit tie-break rules.
+- Pairwise preference records, if supported by a practical UI.
+- User-adjustable ranking preferences.
+
+A suggested conceptual pipeline:
+
+1. Retrieve Anime entries.
+2. Sort by the actual custom rating in descending order.
+3. Group entries with equal ratings.
+4. Calculate tie-break scores only for entries within the same rating group.
+5. Apply explicit user preferences before weaker inferred signals.
+6. Use stable ordering as the final fallback.
+7. Produce a deterministic, repeatable final list.
+8. Explain the reason for the ordering when meaningful evidence is available.
+
+The exact algorithm must be documented in the source code and tested.
+
+Do not use random scores or arbitrary hidden rules.
+
+Do not let tie-break scores silently override a higher primary rating unless the user explicitly chooses a different ranking mode.
+
+6.4 User control
+
+Provide a Rafael section or settings panel where the user can:
+
+- Enable or disable Rafael.
+- Choose the ranking mode.
+- Enable or disable individual tie-break signals.
+- Adjust available ranking weights where practical.
+- Prefer manual order over inferred tie-breaking.
+- See why two equally rated Anime appear in a particular order.
+- Reset Rafael's learned preferences without deleting Anime records.
+- Keep the original rating-based sorting available.
+
+The ranking system must not take control away from the user.
+
+Allow a manual preference or explicit ordering to override inferred tie-breaks.
+
+Do not modify a user's saved rating automatically.
+
+6.5 Explainable ranking
+
+When the user opens a ranking explanation, show a concise, understandable reason.
+
+Examples:
+
+- "Both Anime have the same rating. You marked this one as a favorite."
+- "You explicitly ranked this Anime higher."
+- "No additional preference evidence is available; their existing order was preserved."
+
+Provide equivalent natural Bengali messages.
+
+Never claim that Rafael understands the user's feelings or has learned from behavior that was not actually observed.
+
+6.6 Offline operation and honest AI claims
+
+Rafael must operate locally using the data available on the device.
+
+Do not require an external AI API, internet connection, paid service, or cloud database for core ranking functionality.
+
+A deterministic, rule-based engine is acceptable and preferred for this feature.
+
+Do not describe it as a trained machine-learning model unless an actual model is implemented.
+
+Keep the name Rafael, but describe its real capabilities accurately.
+
+6.7 Performance
+
+Rafael must handle large libraries containing thousands of Anime records.
+
+Avoid unnecessary repeated database queries and expensive nested loops.
+
+Use efficient sorting and tie-break calculations. Cache derived scores where appropriate and invalidate them when relevant data changes.
+
+Do not block the main thread.
+
+Acceptance test: Create several Anime with equal ratings, apply explicit user preferences, restart the app, and verify that Rafael produces the same justified order without changing the saved ratings.
+
+---
+
+SECTION 7 — PROFESSIONAL ANIME SHARING STUDIO
+
+The current sharing experience must be upgraded.
+
+When I share an Anime, I want to share a complete, attractive visual composition rather than just plain text or a bare link.
+
+Create a professional Sharing Studio using the existing AniLog branding.
+
+7.1 Share the complete Anime information
+
+Allow the user to select which information appears on the share card.
+
+Supported fields should include, where available:
+
+- Anime cover image.
+- Anime title.
+- Exact custom rating.
+- Star visualization of the rating.
+- Personal review.
+- Comments, if appropriate.
+- Genres and tags.
+- Watch status, if selected.
+- Episode progress, if selected.
+- User's personal ranking, if selected.
+- AniLog branding or logo.
+- Optional date or additional supported metadata.
+
+Provide sensible defaults so the user can generate a complete card quickly.
+
+Do not force every possible field onto every design.
+
+Do not expose private settings, passcodes, or unrelated personal data.
+
+7.2 Share an actual image
+
+When the user chooses image-card sharing, generate a real image file representing the complete card.
+
+Do not merely share text while claiming that an image was generated.
+
+Use Android-compatible bitmap or graphics rendering and the appropriate sharing mechanism, such as the Android Sharesheet with a secure FileProvider URI.
+
+Ensure:
+
+- The image contains the selected cover and information.
+- Text remains readable.
+- The image is not clipped.
+- The image is not stretched.
+- The rating is correct.
+- Bengali text renders correctly.
+- The resulting image can be shared with compatible apps.
+- Temporary files are handled safely.
+- The image is generated without uploading private content to an external service.
+
+Where supported, allow the user to save the generated card locally.
+
+Also retain ordinary text sharing as a separate option.
+
+7.3 Professional card dimensions
+
+Create polished share-card layouts suitable for social media, messaging applications, and personal collections.
+
+Offer suitable aspect ratios, such as:
+
+- Portrait social card.
+- Square card.
+- Landscape card.
+
+Use high-quality rendering and appropriate image resolution.
+
+Respect safe margins and typography so the card looks good on small screens.
+
+Avoid cutting off long titles, ratings, or reviews.
+
+7.4 Multiple professional themes
+
+Add a visual theme selector with multiple distinctly designed templates.
+
+Include original designs inspired by different collectible-card aesthetics, such as:
+
+1. Neon Violet — black background, restrained purple glow, premium visual hierarchy.
+2. Celestial Anime — cosmic background, elegant lighting, layered cover presentation.
+3. Premium Collector — refined borders, metadata panels, and a polished collector-card layout.
+4. Elemental Card — original elemental gradients, visual energy, and structured rating panels.
+5. Pokémon-Inspired Collectible Layout — a collectible-card composition with a prominent artwork area, stat panels, decorative borders, and rarity-style visual hierarchy.
+6. Minimal Premium — clean typography, generous spacing, and restrained decoration.
+7. Dark Cinematic — cinematic contrast and layered imagery.
+8. Custom Review Card — focus on the user's review, rating, and cover.
+9. Rafael Ranked Card — highlights the Anime's personal rating and Rafael ranking position.
+
+These are theme concepts. Build original AniLog designs. Do not copy Pokémon's official logo, copyrighted card layouts, character artwork, or trademarked assets.
+
+Do not use copyrighted artwork unless it is provided by the user or otherwise appropriately licensed.
+
+7.5 Theme customization
+
+Allow the user to customize supported aspects of the selected theme, such as:
+
+- Card format.
+- Background style.
+- Accent color.
+- Information visibility.
+- Rating display.
+- Review visibility.
+- Border and decoration style.
+- Branding visibility where appropriate.
+
+Keep customization intuitive. Do not overwhelm the user with unnecessary controls.
+
+Preserve the selected theme and preferences where practical.
+
+7.6 Preview before sharing
+
+Provide a live or promptly updated preview.
+
+The user should be able to:
+
+1. Open an Anime.
+2. Select Share as Card.
+3. Choose a theme.
+4. Select the information to display.
+5. Preview the complete composition.
+6. Generate the final image.
+7. Share it or save it.
+
+Use a responsive, scrollable layout. Do not allow the preview, theme selector, or action buttons to disappear beyond the screen bounds.
+
+7.7 Android Sharesheet integration
+
+Provide working actions for:
+
+- Share Image.
+- Save Image.
+- Share Text.
+- Share Image and Text when supported by the receiving app.
+- Cancel.
+
+Use Android's native sharing mechanisms where appropriate.
+
+Do not hardcode individual app package names as the only way to share.
+
+Let the Android Sharesheet display compatible installed apps, including messaging and social applications.
+
+Handle URI permissions and temporary file access correctly.
+
+Show a localized error if rendering or sharing fails.
+
+7.8 Performance and image handling
+
+- Resize images appropriately for card generation.
+- Avoid loading unnecessarily large images into memory.
+- Use background execution for expensive rendering.
+- Preserve aspect ratios.
+- Handle missing or invalid cover images gracefully.
+- Avoid network requests when sharing already stored offline content.
+- Never upload private Anime reviews without explicit user action.
+
+Acceptance test: Generate several different themes for the same Anime, verify that the cover, title, exact rating, and selected review are present, save the card, and share the actual image through the Android Sharesheet.
+
+---
+
+SECTION 8 — BULK ANIME IMPORT
+
+Allow users to paste hundreds or thousands of Anime titles directly into AniLog.
+
+8.1 Bulk input
+
+Create a dedicated Bulk Anime Import screen within the existing design and navigation.
+
+Accept common formats:
+
+- One title per line.
+- Numbered lists.
+- Bullet lists.
+- Tab-separated text.
+- Simple CSV-like text when safely identifiable.
+- AniLog-supported exported text formats.
+
+Example:
+
+Naruto
+One Piece
+Attack on Titan
+Death Note
+Fullmetal Alchemist: Brotherhood
+
+Example numbered list:
+
+1. Naruto
+2. One Piece
+3. Attack on Titan
+
+Parse the entries carefully without deleting meaningful title characters.
+
+8.2 Preview and edit before import
+
+Before inserting entries, show a preview.
+
+Allow the user to:
+
+- Edit titles.
+- Add missing entries.
+- Remove unwanted entries.
+- Select or deselect entries.
+- Detect duplicates.
+- Review the total count.
+- Cancel safely.
+
+Do not insert a large list before confirmation.
+
+8.3 Import into the existing database
+
+Use the existing Anime entities, repositories, and database architecture.
+
+Bulk-imported entries must become ordinary, fully editable Anime records.
+
+Where supported, preserve or import:
+
+- Title.
+- Cover image.
+- Custom rating.
+- Personal review.
+- Comments.
+- Genres and tags.
+- Watch status.
+- Episode progress.
+- Favorite state.
+- Dates.
+- Other existing metadata.
+
+If only titles are provided, create entries with the application's established defaults and let the user fill in missing details later.
+
+Never fabricate ratings, comments, cover images, or metadata.
+
+8.4 Large-list performance
+
+Support hundreds or thousands of titles without freezing the app.
+
+Use efficient parsing, lazy lists, asynchronous database operations, and safe batching.
+
+Show progress when necessary.
+
+Prevent duplicate submissions caused by repeated button presses.
+
+Avoid loading all cover images into memory during name-only import.
+
+---
+
+SECTION 9 — COMPLETE EDITING AND SAFE DELETION
+
+Every Anime entry must remain editable at any time.
+
+This includes manually added entries, bulk-imported entries, and structured-imported entries.
+
+9.1 Edit existing entries
+
+Provide an accessible Edit action on the Anime details screen and in appropriate places in the library.
+
+Pre-fill the form with the current saved values.
+
+Allow users to edit:
+
+- Title.
+- Cover image.
+- Custom decimal rating.
+- Personal review.
+- Comments.
+- Genres and tags.
+- Watch status.
+- Episode progress.
+- Favorite state.
+- Dates, where supported.
+- Any other existing metadata.
+
+Allow the user to replace or remove a cover image using the existing supported image-selection mechanism.
+
+9.2 Preserve record identity
+
+Saving an edit must update the existing database record.
+
+Do not create a duplicate.
+
+Preserve record IDs, creation timestamps, and other identifiers unless a verified technical reason requires otherwise.
+
+Preserve all unchanged fields.
+
+If a save fails, retain the previously saved data and show a localized error.
+
+Edits must appear in the library, search, sorting, statistics, comparisons, Rafael ranking, and exports wherever relevant.
+
+9.3 Safe deletion
+
+Provide a Delete action with a confirmation dialog.
+
+Cancel must leave the record unchanged.
+
+Confirm must delete only the selected record and handle associated image resources safely.
+
+Do not delete unrelated entries.
+
+9.4 Editing acceptance test
+
+Add an Anime, edit its title, cover image, rating, and review, and save it.
+
+Verify that the existing record is updated without duplication and that all changes persist after restarting the app.
+
+Repeat the test for a bulk-imported Anime.
+
+---
+
+SECTION 10 — MULTIPLE EXPORT AND COPY FORMATS
+
+Users must be able to copy and export Anime lists in several formats.
+
+Provide a clear format selector and preview.
+
+Format A — Names Only
+
+Naruto
+One Piece
+Attack on Titan
+
+Format B — Names and Ratings
+
+Naruto | Rating: 8.7
+One Piece | Rating: 9.25
+Attack on Titan | Rating: 9.8125
+
+Preserve exact rating values.
+
+Format C — Names, Ratings, and Reviews
+
+Title: Naruto
+Rating: 8.7
+Review: A memorable story with excellent character development.
+
+Title: One Piece
+Rating: 9.25
+Review: An incredible adventure with a rich world.
+
+Handle missing reviews safely.
+
+Format D — Complete Structured JSON
+
+Include all supported Anime fields:
+
+- Title.
+- Exact rating.
+- Review and comments.
+- Genres and tags.
+- Watch status.
+- Episode progress.
+- Favorite state.
+- Dates, where supported.
+- Other relevant metadata.
+
+Preserve image references or image data when supported by the existing backup architecture.
+
+Use a documented, versioned structure where appropriate.
+
+Copy and save actions
+
+For each format, provide working actions for:
+
+- Preview.
+- Copy.
+- Save or export.
+- Share where appropriate.
+
+Use the Android clipboard, file-export mechanisms, and Sharesheet where suitable.
+
+Show localized success or failure messages.
+
+Round-trip import/export
+
+Support re-importing AniLog's structured JSON exports.
+
+Support pasting exported text formats back into the bulk-import interface where the format can be parsed reliably.
+
+Before applying changes:
+
+- Validate the input.
+- Detect duplicates.
+- Preview the result.
+- Explain which entries will be added, skipped, or updated.
+- Require explicit approval before overwriting existing entries.
+- Preserve existing data if an operation fails.
+
+Do not claim that a names-only format can restore fields that it does not contain.
+
+---
+
+SECTION 11 — CONFIGURABLE FORGOT-PASSCODE RECOVERY
+
+The existing Forgot Passcode feature must enforce a genuine waiting period.
+
+11.1 Configurable duration
+
+Add a setting allowing any whole-minute duration from 5 through 60 minutes, inclusive.
+
+Provide a user-friendly selector and clearly display the selected duration.
+
+Persist the preference.
+
+Use a default of 5 minutes for existing installations without a saved value, while preserving valid existing settings.
+
+Validate the range in the underlying logic.
+
+11.2 Recovery behavior
+
+When the user confirms Forgot Passcode:
+
+1. Persist the recovery start time and applicable duration.
+2. Create the recovery deadline.
+3. Invalidate or remove the old passcode according to the existing secure design.
+4. Immediately block access to protected content.
+5. Show a localized countdown.
+6. Permit new passcode setup only after the deadline expires.
+
+The user must not enter protected content immediately after requesting a reset.
+
+11.3 Persisted security enforcement
+
+Use a persisted deadline rather than an in-memory timer alone.
+
+Recheck the recovery state on app launch and every relevant protected-content access.
+
+Ensure the waiting period survives process termination and device restart.
+
+Do not let navigation, changing language, or reopening the app bypass the restriction.
+
+Do not let changing the configured duration shorten an already active recovery session.
+
+Use a testable clock abstraction where appropriate.
+
+Do not expose sensitive passcode values or claim tamper-proof timing unless it is actually implemented.
+
+---
+
+SECTION 12 — DATABASE AND BACKUP SAFETY
+
+Inspect the existing database and backup implementations before changing them.
+
+Preserve all existing user data.
+
+Do not clear the database, reset preferences, overwrite records silently, or introduce destructive migrations.
+
+If a schema change is necessary, provide a backward-compatible migration and test it.
+
+Preserve:
+
+- Anime records and IDs.
+- Ratings and their precision.
+- Reviews and comments.
+- Cover images.
+- Collections and favorites.
+- Watch status and episode progress.
+- Existing preferences.
+- Existing backup compatibility.
+- Rafael settings and preference records where implemented.
+
+Do not import sample data into the user's actual database.
+
+---
+
+SECTION 13 — TESTING AND VERIFICATION
+
+Do not remove tests to make the build pass.
+
+13.1 Localization tests
+
+Verify first-launch selection, saved preferences, language switching, Bengali rendering, and preservation of user-entered content.
+
+13.2 Layout tests
+
+Verify that list items and controls are not clipped, the final list item is visible, keyboard opening does not hide inputs, and long titles render correctly.
+
+Test different display sizes and both languages.
+
+13.3 Rating tests
+
+Verify zero, ten, arbitrary decimals, invalid values, persistence, sorting, and exact export/import behavior.
+
+13.4 Rafael tests
+
+Verify:
+
+- Higher ratings remain above lower ratings in the default mode.
+- Equal ratings use configured tie-break rules.
+- Explicit user preferences are respected.
+- No evidence results in stable ordering.
+- Repeated ranking produces deterministic results.
+- Editing a rating or preference refreshes ranking.
+- Ranking calculations do not modify saved ratings.
+- Large libraries remain responsive.
+
+13.5 Sharing tests
+
+Verify that generated cards contain the selected image and fields, Bengali text renders correctly, themes produce distinct layouts, saved images exist, and the Android Sharesheet receives an actual image URI.
+
+Test missing images, long reviews, and extreme rating precision.
+
+13.6 Import/export and editing tests
+
+Verify bulk paste, preview, duplicate detection, cancellation, large-list performance, structured JSON round trips, safe editing, and confirmed deletion.
+
+13.7 Recovery tests
+
+Verify the minimum and maximum durations, deadline enforcement, app restart behavior, recovery persistence, and the inability to bypass the waiting period.
+
+Use deterministic time simulation in automated tests rather than waiting an actual hour.
+
+---
+
+SECTION 14 — GITHUB ACTIONS AND BUILD SAFETY
+
+Inspect the current working GitHub Actions workflow before modifying it.
+
+Preserve the correct Gradle Wrapper configuration and avoid reintroducing previously resolved build issues.
+
+Maintain compatible JDK, Android SDK, Gradle, Android Gradle Plugin, and signing settings.
+
+Run:
+
+1. Relevant Gradle configuration checks.
+2. Unit tests.
+3. Lint checks.
+4. Debug APK assembly.
+5. APK existence and non-empty verification.
+6. Application ID verification.
+7. Artifact upload, if repository access permits.
+
+Do not hide test failures with "continue-on-error: true".
+
+Do not claim that the application is fully verified merely because the APK compiles.
+
+Distinguish compilation, automated testing, runtime verification, and successful artifact upload.
+
+---
+
+SECTION 15 — STRICT CHANGE CONTROL
+
+Implement only the requested enhancements:
+
+1. Complete English/Bangla localization.
+2. Configurable and enforced passcode recovery.
+3. Arbitrary decimal ratings.
+4. Correct list visibility and layout.
+5. Rafael intelligent ranking engine.
+6. Professional image-based Anime Sharing Studio.
+7. Multiple original share-card themes.
+8. Bulk Anime import.
+9. Multiple export and copy formats.
+10. Full editing and safe deletion support.
+11. Relevant tests.
+
+Preserve all unrelated existing functionality.
+
+Do not unnecessarily change:
+
+- App architecture.
+- Application ID or namespace.
+- Existing logo and branding.
+- Unrelated screens or navigation.
+- Unrelated database entities.
+- Existing user data.
+- Unrelated dependencies.
+- Existing signing configuration.
+- Working GitHub Actions configuration.
+
+Do not rebuild the application from scratch.
+
+Do not replace existing working code with a generic template.
+
+If a shared component must change, make the smallest compatible modification and explain why.
+
+If an unrelated defect is discovered, report it separately.
+
+---
+
+SECTION 16 — REQUIRED IMPLEMENTATION ORDER
+
+Follow this sequence:
+
+Phase 1: Inspect the repository, current implementations, build status, and existing data structures.
+
+Phase 2: Produce a file-by-file change plan.
+
+Phase 3: Implement complete English/Bangla localization.
+
+Phase 4: Fix list visibility, scrolling, keyboard insets, and card layout.
+
+Phase 5: Implement and test custom decimal ratings.
+
+Phase 6: Implement the Rafael ranking engine, user controls, explanations, and deterministic tie-breaking.
+
+Phase 7: Implement the Sharing Studio, original themes, card rendering, image saving, and Android sharing.
+
+Phase 8: Implement bulk import, preview, duplicate detection, and safe database insertion.
+
+Phase 9: Implement export formats, copy/share actions, and structured re-import.
+
+Phase 10: Verify editing and safe deletion for manually added and imported Anime.
+
+Phase 11: Implement and test the configurable passcode recovery deadline.
+
+Phase 12: Run relevant tests, lint, and the Debug APK build.
+
+Phase 13: Review the final diff for unintended changes and report the results.
+
+Use the actual repository structure and existing module names.
+
+If the repository is inaccessible, request the required access or provide precise, repository-specific patches. Do not pretend that changes were applied.
+
+SECTION 17 — FINAL REPORT
+
+After implementation, report:
+
+1. Exact files changed and why.
+2. Localization status.
+3. List layout issues corrected.
+4. Custom rating behavior and precision.
+5. Rafael's actual algorithm and tie-break rules.
+6. How Rafael explains rankings and uses user preferences.
+7. Available share-card themes.
+8. Whether sharing generates and sends an actual image.
+9. Bulk import behavior and large-list performance.
+10. Export formats and preserved fields.
+11. Editing and deletion behavior.
+12. Passcode recovery enforcement.
+13. Actual test results.
+14. Debug APK build status.
+15. Artifact upload status.
+16. Any remaining limitations or unverified behavior.
+
+Do not claim success without evidence.
+
+FINAL MANDATORY INSTRUCTION
+
+Upgrade the existing AniLog application in place.
+
+Preserve all existing working features, user data, application identity, and the official A logo.
+
+Make the Anime library visually correct and easy to use. Implement truly customizable decimal ratings, a transparent offline Rafael ranking engine, professional image-based sharing with multiple original themes, bulk Anime management, complete editing support, bilingual localization, and secure configurable passcode recovery.
+
+Do not rebuild the app from scratch. Do not make unrelated changes. Do not silently delete data. Do not fake AI capabilities or claim unverified results.
+
+Start by inspecting the real repository, then implement the smallest safe set of changes, test them, verify the build, and provide a factual report.

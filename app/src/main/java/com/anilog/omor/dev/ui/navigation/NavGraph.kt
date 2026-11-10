@@ -10,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -24,14 +23,18 @@ import com.anilog.omor.dev.ui.anime.AnimeDetailScreen
 import com.anilog.omor.dev.ui.anime.AnimeDetailViewModel
 import com.anilog.omor.dev.ui.backup.BackupRestoreScreen
 import com.anilog.omor.dev.ui.backup.BackupViewModel
+import com.anilog.omor.dev.ui.bulk.BulkImportScreen
+import com.anilog.omor.dev.ui.bulk.BulkImportViewModel
 import com.anilog.omor.dev.ui.collections.CollectionDetailScreen
 import com.anilog.omor.dev.ui.collections.CollectionsScreen
 import com.anilog.omor.dev.ui.collections.CollectionsViewModel
 import com.anilog.omor.dev.ui.comparison.CompareScreen
 import com.anilog.omor.dev.ui.comparison.CompareViewModel
 import com.anilog.omor.dev.ui.components.AniLogBottomBar
+import com.anilog.omor.dev.ui.export.ExportFormatScreen
 import com.anilog.omor.dev.ui.home.HomeScreen
 import com.anilog.omor.dev.ui.home.HomeViewModel
+import com.anilog.omor.dev.ui.language.LanguageSelectionScreen
 import com.anilog.omor.dev.ui.library.LibraryScreen
 import com.anilog.omor.dev.ui.library.LibraryViewModel
 import com.anilog.omor.dev.ui.privacy.PasscodeLockScreen
@@ -49,10 +52,25 @@ fun AniLogNavGraph(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    // 1. First-launch Language Selection
+    val hasCompletedLangSelection by app.userPreferencesRepository.hasCompletedLanguageSelection.collectAsStateWithLifecycle(true)
+    var localLangCompleted by remember { mutableStateOf(false) }
+
+    if (!hasCompletedLangSelection && !localLangCompleted) {
+        LanguageSelectionScreen(
+            preferencesRepository = app.userPreferencesRepository,
+            onLanguageSelected = { localLangCompleted = true }
+        )
+        return
+    }
+
+    // 2. Passcode & Enforced Recovery
     val isPasscodeEnabled by app.userPreferencesRepository.isPasscodeEnabled.collectAsStateWithLifecycle(false)
+    val activeRecoveryDeadline by app.userPreferencesRepository.activeRecoveryDeadline.collectAsStateWithLifecycle(0L)
+    val isRecoveryActive = app.userPreferencesRepository.isRecoveryActive(activeRecoveryDeadline)
     var isUnlocked by remember { mutableStateOf(false) }
 
-    if (isPasscodeEnabled && !isUnlocked) {
+    if ((isPasscodeEnabled || isRecoveryActive) && !isUnlocked) {
         PasscodeLockScreen(
             preferencesRepository = app.userPreferencesRepository,
             onUnlocked = { isUnlocked = true }
@@ -220,7 +238,7 @@ fun AniLogNavGraph(
                 )
             }
 
-            // 9. Review Card Generator
+            // 9. Review Card Generator / Sharing Studio
             composable(
                 route = Screen.ReviewCard.route,
                 arguments = listOf(navArgument("animeId") { type = NavType.LongType })
@@ -236,7 +254,26 @@ fun AniLogNavGraph(
                 )
             }
 
-            // 10. Backup & Restore
+            // 10. Bulk Import Screen
+            composable(Screen.BulkImport.route) {
+                val bulkViewModel = remember {
+                    BulkImportViewModel(app.animeRepository)
+                }
+                BulkImportScreen(
+                    viewModel = bulkViewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            // 11. Export Formats Screen
+            composable(Screen.ExportFormats.route) {
+                ExportFormatScreen(
+                    repository = app.animeRepository,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            // 12. Backup & Restore
             composable(Screen.BackupRestore.route) {
                 val backupViewModel = remember {
                     BackupViewModel(app.backupManager)
@@ -247,19 +284,22 @@ fun AniLogNavGraph(
                 )
             }
 
-            // 11. Settings
+            // 13. Settings
             composable(Screen.Settings.route) {
                 val settingsViewModel = remember {
                     SettingsViewModel(app.userPreferencesRepository)
                 }
                 SettingsScreen(
                     viewModel = settingsViewModel,
+                    preferencesRepository = app.userPreferencesRepository,
                     onNavigateToBackup = { navController.navigate(Screen.BackupRestore.route) },
+                    onNavigateToBulkImport = { navController.navigate(Screen.BulkImport.route) },
+                    onNavigateToExportFormats = { navController.navigate(Screen.ExportFormats.route) },
                     onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) }
                 )
             }
 
-            // 12. Privacy Policy
+            // 14. Privacy Policy
             composable(Screen.PrivacyPolicy.route) {
                 PrivacyPolicyScreen(
                     onNavigateBack = { navController.popBackStack() }

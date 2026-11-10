@@ -1,3 +1,132 @@
 <resources>
     <string name="app_name">AniLog</string>
+    <string name="tagline">Your Anime. Your Memories. Your Ratings.</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_library">Anime Library</string>
+    <string name="nav_watchlist">Watchlist</string>
+    <string name="nav_collections">Collections</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_settings">Settings</string>
+    
+    <!-- Actions -->
+    <string name="action_add_anime">Add Anime</string>
+    <string name="action_edit_anime">Edit Anime</string>
+    <string name="action_delete_anime">Delete Anime</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_close">Close</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_reset">Reset</string>
+    <string name="action_apply">Apply</string>
+    <string name="action_share">Share</string>
+    <string name="action_share_anime">Share Anime</string>
+    <string name="action_sharing_studio">Sharing Studio</string>
+    <string name="action_compare">Compare</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_export">Export</string>
+    <string name="action_bulk_import">Bulk Import</string>
+    
+    <!-- Rating -->
+    <string name="custom_rating">Custom Rating</string>
+    <string name="personal_rating">Personal Rating</string>
+    <string name="unrated">Unrated</string>
+    <string name="rating_range_hint">Enter decimal rating (0.0 to 10.0)</string>
+    <string name="invalid_rating_error">Please enter a valid rating between 0 and 10</string>
+    <string name="clear_rating">Clear (Unrated)</string>
+    
+    <!-- Content fields -->
+    <string name="label_anime_title">Anime Title</string>
+    <string name="label_original_title">Original / Japanese Title</string>
+    <string name="label_watching_status">Watching Status</string>
+    <string name="label_watched_episodes">Watched</string>
+    <string name="label_total_episodes">Total Eps</string>
+    <string name="label_release_year">Release Year</string>
+    <string name="label_personal_review">Personal Review</string>
+    <string name="label_personal_notes">Personal Notes &amp; Trivia</string>
+    <string name="label_genres">Genres</string>
+    <string name="label_tags">Tags</string>
+    <string name="label_favorites">Favorites</string>
+    <string name="label_add_favorites">Add to Favorites</string>
+    
+    <!-- Status -->
+    <string name="status_watching">Watching</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_plan_to_watch">Plan to Watch</string>
+    <string name="status_on_hold">On Hold</string>
+    <string name="status_dropped">Dropped</string>
+    
+    <!-- Search & Filters -->
+    <string name="search_placeholder">Search title, review, genre, tag…</string>
+    <string name="filter_all">All</string>
+    <string name="filter_minimum_rating">Minimum Rating</string>
+    <string name="filter_reset_all">Reset All</string>
+    <string name="filter_apply">Apply Filters</string>
+    
+    <!-- Rafael Ranking Engine -->
+    <string name="rafael_title">Rafael Intelligent Ranking</string>
+    <string name="rafael_subtitle">Deterministic preference-aware ranking engine</string>
+    <string name="rafael_enable">Enable Rafael Engine</string>
+    <string name="rafael_signal_favorites">Favorite Status Signal</string>
+    <string name="rafael_signal_completion">Watch Completion Signal</string>
+    <string name="rafael_signal_review_depth">Review Engagement Signal</string>
+    <string name="rafael_signal_progress">Episode Progress Signal</string>
+    <string name="rafael_reset_prefs">Reset Learned Preferences</string>
+    <string name="rafael_explanation_title">Why is this ranked here?</string>
+    <string name="rafael_reason_favorite">Both Anime have the same rating. You marked this one as a favorite.</string>
+    <string name="rafael_reason_explicit">You explicitly ranked this Anime higher.</string>
+    <string name="rafael_reason_review">Both have the same rating. This entry features an in-depth personal review.</string>
+    <string name="rafael_reason_completed">Both have the same rating. You have fully completed watching this title.</string>
+    <string name="rafael_reason_progress">Both have the same rating. Higher episode commitment.</string>
+    <string name="rafael_reason_stable">No additional preference evidence is available; their existing order was preserved.</string>
+    
+    <!-- Passcode & Security -->
+    <string name="passcode_title">AniLog Protected</string>
+    <string name="passcode_prompt">Enter your passcode PIN to access your personal journal</string>
+    <string name="forgot_passcode">Forgot Passcode?</string>
+    <string name="reset_passcode_confirm_title">Reset Forgotten Passcode?</string>
+    <string name="reset_passcode_warning">Resetting your passcode will initiate a security recovery waiting period. Access will be temporarily locked for the configured duration to protect your journal.</string>
+    <string name="recovery_active_title">Security Recovery Period Active</string>
+    <string name="recovery_active_message">A passcode reset was requested. To protect your private anime journal, access is locked until the recovery deadline expires.</string>
+    <string name="recovery_time_remaining">Time Remaining</string>
+    <string name="recovery_duration_setting">Passcode Recovery Waiting Period</string>
+    <string name="recovery_duration_minutes">%1$d minutes</string>
+    <string name="recovery_completed_msg">Recovery period complete. You can now set a new passcode or enter.</string>
+    
+    <!-- Language Selection -->
+    <string name="language_selection_title">Choose Language / ভাষা নির্বাচন করুন</string>
+    <string name="language_selection_subtitle">Select your preferred language. You can change this anytime in Settings.</string>
+    <string name="language_english">English</string>
+    <string name="language_bengali">বাংলা</string>
+    <string name="language_continue">Continue / এগিয়ে যান</string>
+    <string name="setting_language">Language / ভাষা</string>
+    
+    <!-- Sharing Studio -->
+    <string name="share_as_card">Share as Card</string>
+    <string name="share_image">Share Image</string>
+    <string name="save_image">Save Image</string>
+    <string name="share_text">Share Text</string>
+    <string name="share_image_and_text">Share Image &amp; Text</string>
+    <string name="card_aspect_portrait">Portrait (4:5)</string>
+    <string name="card_aspect_square">Square (1:1)</string>
+    <string name="card_aspect_landscape">Landscape (16:9)</string>
+    
+    <!-- Bulk Import -->
+    <string name="bulk_import_title">Bulk Anime Import</string>
+    <string name="bulk_import_hint">Paste titles (one per line, numbered, bulleted, or CSV)…</string>
+    <string name="bulk_import_parse_btn">Parse &amp; Preview</string>
+    <string name="bulk_import_preview_title">Preview &amp; Confirm Import</string>
+    <string name="bulk_import_confirm_btn">Import %1$d Anime</string>
+    <string name="bulk_import_duplicate_badge">Already in Library</string>
+    <string name="bulk_import_success">%1$d anime imported successfully</string>
+    
+    <!-- Export Formats -->
+    <string name="export_formats_title">Export &amp; Copy Anime</string>
+    <string name="format_a_names">Format A — Names Only</string>
+    <string name="format_b_ratings">Format B — Names &amp; Ratings</string>
+    <string name="format_c_reviews">Format C — Names, Ratings &amp; Reviews</string>
+    <string name="format_d_json">Format D — Complete Structured JSON</string>
+    <string name="copied_to_clipboard">Copied to clipboard!</string>
 </resources>

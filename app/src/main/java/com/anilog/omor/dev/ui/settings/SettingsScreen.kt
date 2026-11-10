@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Email
@@ -34,8 +35,11 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Policy
+import androidx.compose.material.icons.filled.PostAdd
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.TextSnippet
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -49,6 +53,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -60,7 +65,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,19 +72,27 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anilog.omor.dev.R
+import com.anilog.omor.dev.data.repository.UserPreferencesRepository
 import com.anilog.omor.dev.domain.model.AppThemeMode
 import com.anilog.omor.dev.domain.model.SortOption
+import com.anilog.omor.dev.ui.ranking.RafaelSettingsDialog
+import com.anilog.omor.dev.util.LocaleHelper
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
+    preferencesRepository: UserPreferencesRepository,
     onNavigateToBackup: () -> Unit,
+    onNavigateToBulkImport: () -> Unit,
+    onNavigateToExportFormats: () -> Unit,
     onNavigateToPrivacyPolicy: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -88,23 +100,21 @@ fun SettingsScreen(
     val context = LocalContext.current
 
     var currentTime by remember { mutableStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(uiState.passcodeResetTimestamp) {
+    LaunchedEffect(uiState.activeRecoveryDeadline) {
         while (true) {
             currentTime = System.currentTimeMillis()
             delay(1000L)
         }
     }
-    val elapsedSinceReset = currentTime - uiState.passcodeResetTimestamp
-    val fiveMinutesMillis = 5 * 60 * 1000L
-    val remainingCooldownSeconds = if (uiState.passcodeResetTimestamp > 0L && elapsedSinceReset < fiveMinutesMillis) {
-        (fiveMinutesMillis - elapsedSinceReset) / 1000L
-    } else 0L
-    val isCooldownActive = remainingCooldownSeconds > 0L
+    val isCooldownActive = preferencesRepository.isRecoveryActive(uiState.activeRecoveryDeadline, currentTime)
+    val remainingCooldownSeconds = preferencesRepository.getRemainingRecoverySeconds(uiState.activeRecoveryDeadline, currentTime)
 
     var showThemeMenu by remember { mutableStateOf(false) }
+    var showLanguageMenu by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
     var showSetPinDialog by remember { mutableStateOf(false) }
     var newPinInput by remember { mutableStateOf("") }
+    var showRafaelDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showLicensesDialog by remember { mutableStateOf(false) }
 
@@ -114,7 +124,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Settings",
+                        text = stringResource(R.string.nav_settings),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -130,6 +140,75 @@ fun SettingsScreen(
                 .padding(horizontal = 20.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Language & Localization Section (Section 3.4)
+            SettingsSectionHeader(title = stringResource(R.string.setting_language))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showLanguageMenu = true }
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Filled.Translate, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text("Language / ভাষা", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    text = if (uiState.appLanguage == LocaleHelper.LANGUAGE_BENGALI) "বাংলা (Bangla)" else "English",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Box {
+                            TextButton(onClick = { showLanguageMenu = true }, modifier = Modifier.testTag("btn_select_language")) {
+                                Text("Change / পরিবর্তন")
+                            }
+                            DropdownMenu(
+                                expanded = showLanguageMenu,
+                                onDismissRequest = { showLanguageMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = "English",
+                                            fontWeight = if (uiState.appLanguage == LocaleHelper.LANGUAGE_ENGLISH) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (uiState.appLanguage == LocaleHelper.LANGUAGE_ENGLISH) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    },
+                                    onClick = {
+                                        viewModel.setAppLanguage(LocaleHelper.LANGUAGE_ENGLISH)
+                                        showLanguageMenu = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = "বাংলা (Bangla)",
+                                            fontWeight = if (uiState.appLanguage == LocaleHelper.LANGUAGE_BENGALI) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (uiState.appLanguage == LocaleHelper.LANGUAGE_BENGALI) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    },
+                                    onClick = {
+                                        viewModel.setAppLanguage(LocaleHelper.LANGUAGE_BENGALI)
+                                        showLanguageMenu = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // Appearance & Theming Section
             SettingsSectionHeader(title = "Appearance & Theming")
             Card(
@@ -231,7 +310,35 @@ fun SettingsScreen(
                 }
             }
 
-            // Security & Privacy Lock
+            // Rafael Intelligent Ranking Engine Section (Section 6)
+            SettingsSectionHeader(title = stringResource(R.string.rafael_title))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showRafaelDialog = true }
+                        .padding(16.dp)
+                        .testTag("settings_rafael_row"),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(stringResource(R.string.rafael_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.rafael_subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    Icon(Icons.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(20.dp))
+                }
+            }
+
+            // Security & Privacy Lock (Section 11)
             SettingsSectionHeader(title = "Privacy & Security")
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -274,6 +381,31 @@ fun SettingsScreen(
                         )
                     }
 
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                    // Configurable Passcode Recovery Waiting Period (Section 11.1: 5 through 60 minutes)
+                    Column {
+                        Text(
+                            text = stringResource(R.string.recovery_duration_setting),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Waiting duration: ${uiState.recoveryDurationMinutes} minutes (5–60 min range)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Slider(
+                            value = uiState.recoveryDurationMinutes.toFloat(),
+                            onValueChange = { viewModel.setRecoveryDurationMinutes(it.toInt()) },
+                            valueRange = 5f..60f,
+                            steps = 54,
+                            modifier = Modifier.testTag("slider_recovery_duration")
+                        )
+                    }
+
                     if (isCooldownActive) {
                         val minutes = remainingCooldownSeconds / 60
                         val seconds = remainingCooldownSeconds % 60
@@ -296,7 +428,7 @@ fun SettingsScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
                                     Text(
-                                        text = "পাসওয়ার্ড রিসেট হয়েছে (Security Cooldown)",
+                                        text = "পাসওয়ার্ড রিসেট হয়েছে (Security Recovery Active)",
                                         style = MaterialTheme.typography.bodySmall,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onErrorContainer
@@ -321,35 +453,45 @@ fun SettingsScreen(
                 }
             }
 
-            // Data & Backup Link
-            SettingsSectionHeader(title = "Data Management")
+            // Data & Bulk Management Section (Sections 8 & 10)
+            SettingsSectionHeader(title = "Data & Bulk Management")
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onNavigateToBackup)
-                        .padding(16.dp)
-                        .testTag("settings_backup_row"),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.Archive, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text("Backup & Export", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                            Text("Full ZIP archive, JSON metadata, CSV export & restore", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                    Icon(Icons.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(20.dp))
+                Column(modifier = Modifier.padding(16.dp)) {
+                    // Bulk Anime Import
+                    SettingsActionRow(
+                        icon = Icons.Filled.PostAdd,
+                        title = stringResource(R.string.bulk_import_title),
+                        subtitle = "Paste hundreds of titles, numbered/bulleted/CSV lists",
+                        onClick = onNavigateToBulkImport
+                    )
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+
+                    // Multiple Export & Copy Formats
+                    SettingsActionRow(
+                        icon = Icons.Filled.TextSnippet,
+                        title = stringResource(R.string.export_formats_title),
+                        subtitle = "Formats A, B, C and full structured JSON export",
+                        onClick = onNavigateToExportFormats
+                    )
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+
+                    // Full ZIP Backup & Restore
+                    SettingsActionRow(
+                        icon = Icons.Filled.Archive,
+                        title = "Full ZIP Backup & Restore",
+                        subtitle = "Full ZIP archive with cover images and cross-refs",
+                        onClick = onNavigateToBackup
+                    )
                 }
             }
 
-            // Section 17: DEVELOPER SECTION (Mandatory exact values)
+            // Section 1: MANDATORY OFFICIAL DEVELOPER SECTION (Preserved exact values)
             SettingsSectionHeader(title = "Developer")
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -369,7 +511,7 @@ fun SettingsScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // 17.1 Shop Button: https://muhammedomor.supportkori.shop/
+                    // Official Shop Button: https://muhammedomor.supportkori.shop/
                     Button(
                         onClick = {
                             val shopUrl = "https://muhammedomor.supportkori.shop/"
@@ -391,7 +533,7 @@ fun SettingsScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // 17.2 Email Contact Button: muhammedomor.studio@gmail.com with subject "AniLog App Support"
+                    // Email Contact Button: muhammedomor.studio@gmail.com with subject "AniLog App Support"
                     OutlinedButton(
                         onClick = {
                             val email = "muhammedomor.studio@gmail.com"
@@ -401,11 +543,10 @@ fun SettingsScreen(
                             try {
                                 context.startActivity(emailIntent)
                             } catch (_: Exception) {
-                                // Fallback: copy email to clipboard
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 val clip = ClipData.newPlainText("Developer Email", email)
                                 clipboard.setPrimaryClip(clip)
-                                Toast.makeText(context, "No email client found. Email copied to clipboard: $email", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "Email copied to clipboard: $email", Toast.LENGTH_LONG).show()
                             }
                         },
                         modifier = Modifier
@@ -460,6 +601,14 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(36.dp))
         }
 
+        // Rafael Settings Dialog
+        if (showRafaelDialog) {
+            RafaelSettingsDialog(
+                preferencesRepository = preferencesRepository,
+                onDismiss = { showRafaelDialog = false }
+            )
+        }
+
         // Set PIN Dialog
         if (showSetPinDialog) {
             AlertDialog(
@@ -496,12 +645,12 @@ fun SettingsScreen(
                         enabled = newPinInput.length == 4 && !isCooldownActive,
                         modifier = Modifier.testTag("btn_confirm_pin")
                     ) {
-                        Text("Save PIN")
+                        Text(stringResource(R.string.action_save))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showSetPinDialog = false }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.action_cancel))
                     }
                 }
             )
@@ -527,8 +676,8 @@ fun SettingsScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("AniLog — Personal Anime Journal", fontWeight = FontWeight.Bold)
-                        Text("Your Anime. Your Memories. Your Ratings.")
+                        Text("AniLog — Personal Anime Library", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.tagline))
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("Developer: Muhammed Omor")
                         Text("Version: 1.0 (Production Native Android)")
@@ -537,7 +686,7 @@ fun SettingsScreen(
                 },
                 confirmButton = {
                     TextButton(onClick = { showAboutDialog = false }) {
-                        Text("Close")
+                        Text(stringResource(R.string.action_close))
                     }
                 }
             )
@@ -599,7 +748,7 @@ fun SettingsActionRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Column {

@@ -27,9 +27,9 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
+            distribution: 'temurin'
+            java-version: '17'
+            cache: 'gradle'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
@@ -56,6 +56,15 @@ jobs:
           chmod +x gradlew
           ./gradlew -v
 
+      - name: Verify Application ID and Project Identity
+        run: |
+          echo "Verifying Application ID com.anilog.omor.dev in build configuration..."
+          grep -q 'applicationId = "com.anilog.omor.dev"' app/build.gradle.kts || {
+            echo "ERROR: Application ID mismatch!"
+            exit 1
+          }
+          echo "SUCCESS: Application ID verified."
+
       - name: Cache Robolectric Maven Jars
         uses: actions/cache@v4
         with:
@@ -65,12 +74,10 @@ jobs:
             ${{ runner.os }}-robolectric-
 
       - name: Run Unit Tests
-        continue-on-error: true
-        run: ./gradlew testDebugUnitTest --continue --stacktrace
+        run: ./gradlew testDebugUnitTest --stacktrace
 
       - name: Run Lint Checks
-        continue-on-error: true
-        run: ./gradlew lintDebug --continue --stacktrace
+        run: ./gradlew lintDebug --stacktrace
 
       - name: Assemble Debug APK
         run: ./gradlew assembleDebug --stacktrace

@@ -1,6 +1,7 @@
 package com.anilog.omor.dev.ui.navigation
 
 sealed class Screen(val route: String) {
+    data object LanguageSelection : Screen("language_selection")
     data object Home : Screen("home")
     data object Library : Screen("library")
     data object Watchlist : Screen("watchlist")
@@ -19,6 +20,8 @@ sealed class Screen(val route: String) {
     data object ReviewCard : Screen("review_card/{animeId}") {
         fun createRoute(animeId: Long) = "review_card/$animeId"
     }
+    data object BulkImport : Screen("bulk_import")
+    data object ExportFormats : Screen("export_formats")
     data object BackupRestore : Screen("backup_restore")
     data object Settings : Screen("settings")
     data object PrivacyPolicy : Screen("privacy_policy")

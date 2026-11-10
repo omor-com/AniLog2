@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -63,7 +64,8 @@ fun AnimeListCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(12.dp),
+            verticalAlignment = Alignment.Top
         ) {
             // Cover Image
             CoverImage(
@@ -76,11 +78,11 @@ fun AnimeListCard(
 
             Spacer(modifier = Modifier.width(14.dp))
 
-            // Details
+            // Details - flexible height so multi-line Bengali/English titles and reviews never get clipped
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .height(118.dp),
+                    .defaultMinSize(minHeight = 118.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
@@ -132,15 +134,18 @@ fun AnimeListCard(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(4.dp))
+
                 // Short review preview or episode progress
                 if (anime.review.isNotBlank()) {
                     Text(
                         text = "“${anime.review.trim()}”",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp
                     )
                 } else if (anime.totalEpisodes > 0) {
                     Text(
@@ -150,7 +155,9 @@ fun AnimeListCard(
                     )
                 }
 
-                // Rating and Star Visualization
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Rating and Star Visualization with exact decimal support
                 StarRatingDisplay(
                     rating = anime.personalRating,
                     starSize = 14.dp,

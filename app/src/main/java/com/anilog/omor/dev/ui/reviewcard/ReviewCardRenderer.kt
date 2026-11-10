@@ -7,7 +7,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
-import android.graphics.Path
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
@@ -20,7 +19,9 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import androidx.core.content.FileProvider
 import com.anilog.omor.dev.data.database.entity.AnimeEntity
+import com.anilog.omor.dev.domain.model.CardAspectRatio
 import com.anilog.omor.dev.domain.model.CardTemplate
+import com.anilog.omor.dev.util.RatingFormatHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -29,30 +30,49 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+data class CardCustomization(
+    val template: CardTemplate = CardTemplate.NEON_VIOLET,
+    val aspectRatio: CardAspectRatio = CardAspectRatio.PORTRAIT,
+    val customExcerpt: String? = null,
+    val showCover: Boolean = true,
+    val showRating: Boolean = true,
+    val showStars: Boolean = true,
+    val showReview: Boolean = true,
+    val showGenres: Boolean = true,
+    val showStatus: Boolean = true,
+    val showEpisodes: Boolean = true,
+    val showRafaelRank: Boolean = true,
+    val rafaelRank: Int? = null,
+    val showBranding: Boolean = true,
+    val showDate: Boolean = true
+)
+
 object ReviewCardRenderer {
 
     suspend fun renderCard(
         context: Context,
         anime: AnimeEntity,
-        customExcerpt: String?,
-        template: CardTemplate,
-        includeGenre: Boolean = true,
-        includeDate: Boolean = true
+        customization: CardCustomization
     ): Bitmap = withContext(Dispatchers.Default) {
-        val width = 1080
-        val height = 1350
+        val width = customization.aspectRatio.width
+        val height = customization.aspectRatio.height
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
-        // Load cover bitmap if present
-        val coverBitmap = loadCoverBitmap(anime.coverPath, 800, 1000)
+        val coverBitmap = if (customization.showCover) {
+            loadCoverBitmap(anime.coverPath, width / 2, height / 2)
+        } else null
 
-        when (template) {
-            CardTemplate.PREMIUM_DARK -> renderPremiumDark(canvas, width, height, anime, coverBitmap, customExcerpt, includeGenre, includeDate)
-            CardTemplate.MINIMAL_LIGHT -> renderMinimalLight(canvas, width, height, anime, coverBitmap, customExcerpt, includeGenre, includeDate)
-            CardTemplate.CINEMATIC -> renderCinematic(canvas, width, height, anime, coverBitmap, customExcerpt, includeGenre, includeDate)
-            CardTemplate.COMPACT_REVIEW -> renderCompact(canvas, width, height, anime, coverBitmap, customExcerpt, includeGenre, includeDate)
-            CardTemplate.TOP_RATED -> renderTopRated(canvas, width, height, anime, coverBitmap, customExcerpt, includeGenre, includeDate)
+        when (customization.template) {
+            CardTemplate.NEON_VIOLET -> renderNeonViolet(canvas, width, height, anime, coverBitmap, customization)
+            CardTemplate.CELESTIAL -> renderCelestial(canvas, width, height, anime, coverBitmap, customization)
+            CardTemplate.PREMIUM_COLLECTOR -> renderPremiumCollector(canvas, width, height, anime, coverBitmap, customization)
+            CardTemplate.ELEMENTAL -> renderElemental(canvas, width, height, anime, coverBitmap, customization)
+            CardTemplate.COLLECTIBLE_CARD -> renderCollectibleCard(canvas, width, height, anime, coverBitmap, customization)
+            CardTemplate.MINIMAL_PREMIUM -> renderMinimalPremium(canvas, width, height, anime, coverBitmap, customization)
+            CardTemplate.DARK_CINEMATIC -> renderDarkCinematic(canvas, width, height, anime, coverBitmap, customization)
+            CardTemplate.CUSTOM_REVIEW -> renderCustomReview(canvas, width, height, anime, coverBitmap, customization)
+            CardTemplate.RAFAEL_RANKED -> renderRafaelRanked(canvas, width, height, anime, coverBitmap, customization)
         }
 
         bitmap
@@ -80,438 +100,424 @@ object ReviewCardRenderer {
         }
     }
 
-    private fun renderPremiumDark(
-        canvas: Canvas,
-        w: Int,
-        h: Int,
-        anime: AnimeEntity,
-        cover: Bitmap?,
-        customExcerpt: String?,
-        includeGenre: Boolean,
-        includeDate: Boolean
+    // 1. NEON VIOLET
+    private fun renderNeonViolet(
+        canvas: Canvas, w: Int, h: Int, anime: AnimeEntity, cover: Bitmap?, opt: CardCustomization
     ) {
-        // Deep Charcoal Background #100E17 with subtle violet gradient at top
         val bgPaint = Paint().apply {
-            shader = LinearGradient(0f, 0f, 0f, h.toFloat(), Color.parseColor("#171324"), Color.parseColor("#0C0A10"), Shader.TileMode.CLAMP)
+            shader = LinearGradient(0f, 0f, 0f, h.toFloat(), Color.parseColor("#150E24"), Color.parseColor("#08060E"), Shader.TileMode.CLAMP)
         }
         canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), bgPaint)
 
-        // Subtle glowing violet border card
-        val cardMargin = 54f
-        val cardRect = RectF(cardMargin, cardMargin, w - cardMargin, h - cardMargin)
+        // Violet neon border
+        val border = RectF(40f, 40f, w - 40f, h - 40f)
         val borderPaint = Paint().apply {
-            color = Color.parseColor("#342852")
+            color = Color.parseColor("#8A2BE2")
             style = Paint.Style.STROKE
             strokeWidth = 3f
             isAntiAlias = true
         }
-        canvas.drawRoundRect(cardRect, 32f, 32f, borderPaint)
+        canvas.drawRoundRect(border, 24f, 24f, borderPaint)
 
-        // Draw cover image centered upper half
-        val coverW = 480f
-        val coverH = 640f
-        val coverX = (w - coverW) / 2f
-        val coverY = 120f
-        val coverRect = RectF(coverX, coverY, coverX + coverW, coverY + coverH)
-
-        if (cover != null) {
-            drawRoundedBitmap(canvas, cover, coverRect, 24f)
+        val isLandscape = w > h
+        if (isLandscape) {
+            renderLandscapeTwoColumn(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#BA68C8"))
         } else {
-            val placeholderPaint = Paint().apply {
-                color = Color.parseColor("#211A33")
-                style = Paint.Style.FILL
-            }
-            canvas.drawRoundRect(coverRect, 24f, 24f, placeholderPaint)
+            renderPortraitStandard(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#BA68C8"))
         }
-
-        // Draw 10-star rating badge and stars
-        val ratingY = coverY + coverH + 50f
-        drawRatingSection(canvas, w, ratingY, anime.personalRating, isDark = true)
-
-        // Title
-        val titleY = ratingY + 90f
-        val titlePaint = TextPaint().apply {
-            color = Color.WHITE
-            textSize = 52f
-            typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD)
-            isAntiAlias = true
-        }
-        drawCenteredText(canvas, anime.title, w, titleY, titlePaint, w - 160)
-
-        // Review text excerpt
-        val excerpt = customExcerpt ?: anime.review.ifBlank { anime.notes }
-        if (excerpt.isNotBlank()) {
-            val quoteY = titleY + 80f
-            val quotePaint = TextPaint().apply {
-                color = Color.parseColor("#D0CBE0")
-                textSize = 34f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
-                isAntiAlias = true
-            }
-            drawCenteredText(canvas, "“${excerpt.take(160)}${if (excerpt.length > 160) "..." else ""}”", w, quoteY, quotePaint, w - 200)
-        }
-
-        // Footer Branding: ordinary interface text
-        val footerY = h - 90f
-        val footerPaint = TextPaint().apply {
-            color = Color.parseColor("#8E82A8")
-            textSize = 28f
-            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
-            isAntiAlias = true
-        }
-        val dateStr = if (includeDate && anime.completionDate != null) {
-            " • Finished " + SimpleDateFormat("MMM yyyy", Locale.US).format(Date(anime.completionDate))
-        } else ""
-        drawCenteredText(canvas, "AniLog • Personal Anime Journal$dateStr", w, footerY, footerPaint, w - 100)
     }
 
-    private fun renderMinimalLight(
-        canvas: Canvas,
-        w: Int,
-        h: Int,
-        anime: AnimeEntity,
-        cover: Bitmap?,
-        customExcerpt: String?,
-        includeGenre: Boolean,
-        includeDate: Boolean
+    // 2. CELESTIAL ANIME
+    private fun renderCelestial(
+        canvas: Canvas, w: Int, h: Int, anime: AnimeEntity, cover: Bitmap?, opt: CardCustomization
     ) {
-        // Crisp White Background
-        canvas.drawColor(Color.parseColor("#FAFAFC"))
+        val bgPaint = Paint().apply {
+            shader = LinearGradient(0f, 0f, 0f, h.toFloat(), Color.parseColor("#0A1128"), Color.parseColor("#000411"), Shader.TileMode.CLAMP)
+        }
+        canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), bgPaint)
 
-        // Subtle thin dark border
-        val cardMargin = 50f
-        val cardRect = RectF(cardMargin, cardMargin, w - cardMargin, h - cardMargin)
+        // Cosmic stars
+        val starPaint = Paint().apply { color = Color.parseColor("#80FFFFFF"); isAntiAlias = true }
+        for (i in 0 until 40) {
+            val sx = ((i * 37) % w).toFloat()
+            val sy = ((i * 49) % h).toFloat()
+            canvas.drawCircle(sx, sy, if (i % 3 == 0) 2.5f else 1.5f, starPaint)
+        }
+
+        val border = RectF(40f, 40f, w - 40f, h - 40f)
         val borderPaint = Paint().apply {
-            color = Color.parseColor("#E4E2EB")
+            color = Color.parseColor("#00E5FF")
             style = Paint.Style.STROKE
             strokeWidth = 2.5f
             isAntiAlias = true
         }
-        canvas.drawRoundRect(cardRect, 28f, 28f, borderPaint)
+        canvas.drawRoundRect(border, 24f, 24f, borderPaint)
 
-        // Cover image
-        val coverW = 460f
-        val coverH = 620f
-        val coverX = (w - coverW) / 2f
-        val coverY = 130f
-        val coverRect = RectF(coverX, coverY, coverX + coverW, coverY + coverH)
-
-        if (cover != null) {
-            drawRoundedBitmap(canvas, cover, coverRect, 20f)
+        val isLandscape = w > h
+        if (isLandscape) {
+            renderLandscapeTwoColumn(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#00E5FF"))
         } else {
-            val placeholderPaint = Paint().apply { color = Color.parseColor("#EDEBF2") }
-            canvas.drawRoundRect(coverRect, 20f, 20f, placeholderPaint)
+            renderPortraitStandard(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#00E5FF"))
         }
-
-        // Rating
-        val ratingY = coverY + coverH + 50f
-        drawRatingSection(canvas, w, ratingY, anime.personalRating, isDark = false)
-
-        // Title
-        val titleY = ratingY + 86f
-        val titlePaint = TextPaint().apply {
-            color = Color.parseColor("#181622")
-            textSize = 50f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            isAntiAlias = true
-        }
-        drawCenteredText(canvas, anime.title, w, titleY, titlePaint, w - 160)
-
-        // Excerpt
-        val excerpt = customExcerpt ?: anime.review.ifBlank { anime.notes }
-        if (excerpt.isNotBlank()) {
-            val quoteY = titleY + 80f
-            val quotePaint = TextPaint().apply {
-                color = Color.parseColor("#4A4658")
-                textSize = 34f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
-                isAntiAlias = true
-            }
-            drawCenteredText(canvas, "“${excerpt.take(160)}${if (excerpt.length > 160) "..." else ""}”", w, quoteY, quotePaint, w - 200)
-        }
-
-        // Footer
-        val footerY = h - 90f
-        val footerPaint = TextPaint().apply {
-            color = Color.parseColor("#7A768A")
-            textSize = 28f
-            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
-            isAntiAlias = true
-        }
-        drawCenteredText(canvas, "AniLog • Personal Anime Journal", w, footerY, footerPaint, w - 100)
     }
 
-    private fun renderCinematic(
-        canvas: Canvas,
-        w: Int,
-        h: Int,
-        anime: AnimeEntity,
-        cover: Bitmap?,
-        customExcerpt: String?,
-        includeGenre: Boolean,
-        includeDate: Boolean
+    // 3. PREMIUM COLLECTOR
+    private fun renderPremiumCollector(
+        canvas: Canvas, w: Int, h: Int, anime: AnimeEntity, cover: Bitmap?, opt: CardCustomization
     ) {
-        // Dimmed cover background stretched with cinematic dark gradient scrim
-        if (cover != null) {
-            val bgPaint = Paint().apply { isFilterBitmap = true }
-            canvas.drawBitmap(cover, null, Rect(0, 0, w, h), bgPaint)
+        canvas.drawColor(Color.parseColor("#0E0F12"))
+
+        // Metallic gold double frame
+        val outer = RectF(44f, 44f, w - 44f, h - 44f)
+        val inner = RectF(56f, 56f, w - 56f, h - 56f)
+        val gold = Paint().apply {
+            color = Color.parseColor("#D4AF37")
+            style = Paint.Style.STROKE
+            strokeWidth = 2.5f
+            isAntiAlias = true
+        }
+        canvas.drawRoundRect(outer, 24f, 24f, gold)
+        gold.strokeWidth = 1f
+        canvas.drawRoundRect(inner, 18f, 18f, gold)
+
+        val isLandscape = w > h
+        if (isLandscape) {
+            renderLandscapeTwoColumn(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#FFD700"))
         } else {
-            canvas.drawColor(Color.parseColor("#12111A"))
+            renderPortraitStandard(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#FFD700"))
         }
-
-        // Dark gradient overlay
-        val scrim = Paint().apply {
-            shader = LinearGradient(
-                0f, 0f, 0f, h.toFloat(),
-                intArrayOf(Color.parseColor("#B308070D"), Color.parseColor("#E608070D"), Color.parseColor("#FA08070D")),
-                floatArrayOf(0f, 0.45f, 1f),
-                Shader.TileMode.CLAMP
-            )
-        }
-        canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), scrim)
-
-        // Foreground featured card
-        val coverW = 440f
-        val coverH = 600f
-        val coverX = (w - coverW) / 2f
-        val coverY = 140f
-        val coverRect = RectF(coverX, coverY, coverX + coverW, coverY + coverH)
-
-        if (cover != null) {
-            drawRoundedBitmap(canvas, cover, coverRect, 20f)
-            // Accent border
-            val p = Paint().apply {
-                style = Paint.Style.STROKE
-                strokeWidth = 4f
-                color = Color.parseColor("#80FFFFFF")
-                isAntiAlias = true
-            }
-            canvas.drawRoundRect(coverRect, 20f, 20f, p)
-        }
-
-        // Rating
-        val ratingY = coverY + coverH + 55f
-        drawRatingSection(canvas, w, ratingY, anime.personalRating, isDark = true)
-
-        // Title
-        val titleY = ratingY + 90f
-        val titlePaint = TextPaint().apply {
-            color = Color.WHITE
-            textSize = 54f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            isAntiAlias = true
-        }
-        drawCenteredText(canvas, anime.title, w, titleY, titlePaint, w - 160)
-
-        // Excerpt
-        val excerpt = customExcerpt ?: anime.review.ifBlank { anime.notes }
-        if (excerpt.isNotBlank()) {
-            val quoteY = titleY + 80f
-            val quotePaint = TextPaint().apply {
-                color = Color.parseColor("#E6E0F5")
-                textSize = 34f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
-                isAntiAlias = true
-            }
-            drawCenteredText(canvas, "“${excerpt.take(150)}${if (excerpt.length > 150) "..." else ""}”", w, quoteY, quotePaint, w - 200)
-        }
-
-        // Footer
-        val footerY = h - 90f
-        val footerPaint = TextPaint().apply {
-            color = Color.parseColor("#B3A8CC")
-            textSize = 28f
-            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
-            isAntiAlias = true
-        }
-        drawCenteredText(canvas, "AniLog • Cinematic Collection Card", w, footerY, footerPaint, w - 100)
     }
 
-    private fun renderCompact(
-        canvas: Canvas,
-        w: Int,
-        h: Int,
-        anime: AnimeEntity,
-        cover: Bitmap?,
-        customExcerpt: String?,
-        includeGenre: Boolean,
-        includeDate: Boolean
+    // 4. ELEMENTAL CARD
+    private fun renderElemental(
+        canvas: Canvas, w: Int, h: Int, anime: AnimeEntity, cover: Bitmap?, opt: CardCustomization
     ) {
-        // Dark compact theme
-        canvas.drawColor(Color.parseColor("#14131E"))
-
-        val cardRect = RectF(60f, 160f, w - 60f, h - 160f)
-        val cardPaint = Paint().apply {
-            color = Color.parseColor("#1F1C2E")
-            isAntiAlias = true
+        val bgPaint = Paint().apply {
+            shader = LinearGradient(0f, 0f, w.toFloat(), h.toFloat(), Color.parseColor("#260810"), Color.parseColor("#0D0507"), Shader.TileMode.CLAMP)
         }
-        canvas.drawRoundRect(cardRect, 32f, 32f, cardPaint)
+        canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), bgPaint)
 
-        // Cover on top or left
-        val coverW = 380f
-        val coverH = 520f
-        val coverX = (w - coverW) / 2f
-        val coverY = cardRect.top + 50f
-        val coverRect = RectF(coverX, coverY, coverX + coverW, coverY + coverH)
-
-        if (cover != null) {
-            drawRoundedBitmap(canvas, cover, coverRect, 20f)
-        }
-
-        val ratingY = coverY + coverH + 50f
-        drawRatingSection(canvas, w, ratingY, anime.personalRating, isDark = true)
-
-        val titleY = ratingY + 85f
-        val titlePaint = TextPaint().apply {
-            color = Color.WHITE
-            textSize = 48f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            isAntiAlias = true
-        }
-        drawCenteredText(canvas, anime.title, w, titleY, titlePaint, w - 200)
-
-        val excerpt = customExcerpt ?: anime.review.ifBlank { anime.notes }
-        if (excerpt.isNotBlank()) {
-            val quoteY = titleY + 75f
-            val quotePaint = TextPaint().apply {
-                color = Color.parseColor("#CFC9E0")
-                textSize = 32f
-                isAntiAlias = true
-            }
-            drawCenteredText(canvas, excerpt.take(140), w, quoteY, quotePaint, w - 220)
-        }
-
-        // Footer
-        val footerY = cardRect.bottom - 40f
-        val footerPaint = TextPaint().apply {
-            color = Color.parseColor("#877F9E")
-            textSize = 26f
-            isAntiAlias = true
-        }
-        drawCenteredText(canvas, "AniLog Journal", w, footerY, footerPaint, w - 160)
-    }
-
-    private fun renderTopRated(
-        canvas: Canvas,
-        w: Int,
-        h: Int,
-        anime: AnimeEntity,
-        cover: Bitmap?,
-        customExcerpt: String?,
-        includeGenre: Boolean,
-        includeDate: Boolean
-    ) {
-        // Deep Obsidian with Gold / Amber Accents
-        canvas.drawColor(Color.parseColor("#0F0E14"))
-
-        // Golden double frame
-        val outerBorder = RectF(50f, 50f, w - 50f, h - 50f)
-        val innerBorder = RectF(66f, 66f, w - 66f, h - 66f)
-        val goldPaint = Paint().apply {
-            color = Color.parseColor("#FFC837")
+        val border = RectF(42f, 42f, w - 42f, h - 42f)
+        val borderPaint = Paint().apply {
+            color = Color.parseColor("#FF5722")
             style = Paint.Style.STROKE
             strokeWidth = 3f
             isAntiAlias = true
         }
-        canvas.drawRoundRect(outerBorder, 30f, 30f, goldPaint)
-        goldPaint.strokeWidth = 1.5f
-        canvas.drawRoundRect(innerBorder, 22f, 22f, goldPaint)
+        canvas.drawRoundRect(border, 24f, 24f, borderPaint)
 
-        // Top Banner Text
-        val headerPaint = TextPaint().apply {
-            color = Color.parseColor("#FFD97D")
-            textSize = 32f
+        val isLandscape = w > h
+        if (isLandscape) {
+            renderLandscapeTwoColumn(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#FF7043"))
+        } else {
+            renderPortraitStandard(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#FF7043"))
+        }
+    }
+
+    // 5. COLLECTIBLE CARD (Collectible card composition, prominent artwork area, stat panels, decorative borders)
+    private fun renderCollectibleCard(
+        canvas: Canvas, w: Int, h: Int, anime: AnimeEntity, cover: Bitmap?, opt: CardCustomization
+    ) {
+        canvas.drawColor(Color.parseColor("#181424"))
+
+        // Ornate card frame
+        val cardRect = RectF(36f, 36f, w - 36f, h - 36f)
+        val framePaint = Paint().apply {
+            color = Color.parseColor("#F5C518")
+            style = Paint.Style.STROKE
+            strokeWidth = 4f
+            isAntiAlias = true
+        }
+        canvas.drawRoundRect(cardRect, 28f, 28f, framePaint)
+
+        val isLandscape = w > h
+        if (isLandscape) {
+            renderLandscapeTwoColumn(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#F5C518"))
+        } else {
+            renderPortraitStandard(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#F5C518"))
+        }
+    }
+
+    // 6. MINIMAL PREMIUM
+    private fun renderMinimalPremium(
+        canvas: Canvas, w: Int, h: Int, anime: AnimeEntity, cover: Bitmap?, opt: CardCustomization
+    ) {
+        canvas.drawColor(Color.parseColor("#F9F9FB"))
+
+        val border = RectF(44f, 44f, w - 44f, h - 44f)
+        val borderPaint = Paint().apply {
+            color = Color.parseColor("#DCDAE3")
+            style = Paint.Style.STROKE
+            strokeWidth = 2f
+            isAntiAlias = true
+        }
+        canvas.drawRoundRect(border, 24f, 24f, borderPaint)
+
+        val isLandscape = w > h
+        if (isLandscape) {
+            renderLandscapeTwoColumn(canvas, w, h, anime, cover, opt, isDark = false, accentColor = Color.parseColor("#4A3B80"))
+        } else {
+            renderPortraitStandard(canvas, w, h, anime, cover, opt, isDark = false, accentColor = Color.parseColor("#4A3B80"))
+        }
+    }
+
+    // 7. DARK CINEMATIC
+    private fun renderDarkCinematic(
+        canvas: Canvas, w: Int, h: Int, anime: AnimeEntity, cover: Bitmap?, opt: CardCustomization
+    ) {
+        if (cover != null) {
+            canvas.drawBitmap(cover, null, Rect(0, 0, w, h), Paint().apply { isFilterBitmap = true })
+        } else {
+            canvas.drawColor(Color.parseColor("#0C0B12"))
+        }
+
+        // Cinematic dark scrim
+        val scrim = Paint().apply {
+            shader = LinearGradient(0f, 0f, 0f, h.toFloat(), Color.parseColor("#CC08060D"), Color.parseColor("#FA08060D"), Shader.TileMode.CLAMP)
+        }
+        canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), scrim)
+
+        val isLandscape = w > h
+        if (isLandscape) {
+            renderLandscapeTwoColumn(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#B388FF"))
+        } else {
+            renderPortraitStandard(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#B388FF"))
+        }
+    }
+
+    // 8. CUSTOM REVIEW CARD
+    private fun renderCustomReview(
+        canvas: Canvas, w: Int, h: Int, anime: AnimeEntity, cover: Bitmap?, opt: CardCustomization
+    ) {
+        val bgPaint = Paint().apply {
+            shader = LinearGradient(0f, 0f, 0f, h.toFloat(), Color.parseColor("#171520"), Color.parseColor("#0F0E14"), Shader.TileMode.CLAMP)
+        }
+        canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), bgPaint)
+
+        val border = RectF(42f, 42f, w - 42f, h - 42f)
+        val borderPaint = Paint().apply {
+            color = Color.parseColor("#9C88FF")
+            style = Paint.Style.STROKE
+            strokeWidth = 2.5f
+            isAntiAlias = true
+        }
+        canvas.drawRoundRect(border, 24f, 24f, borderPaint)
+
+        val isLandscape = w > h
+        if (isLandscape) {
+            renderLandscapeTwoColumn(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#9C88FF"))
+        } else {
+            renderPortraitStandard(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#9C88FF"))
+        }
+    }
+
+    // 9. RAFAEL RANKED CARD
+    private fun renderRafaelRanked(
+        canvas: Canvas, w: Int, h: Int, anime: AnimeEntity, cover: Bitmap?, opt: CardCustomization
+    ) {
+        val bgPaint = Paint().apply {
+            shader = LinearGradient(0f, 0f, 0f, h.toFloat(), Color.parseColor("#1A122E"), Color.parseColor("#0B0814"), Shader.TileMode.CLAMP)
+        }
+        canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), bgPaint)
+
+        val border = RectF(40f, 40f, w - 40f, h - 40f)
+        val borderPaint = Paint().apply {
+            color = Color.parseColor("#FFB300")
+            style = Paint.Style.STROKE
+            strokeWidth = 3f
+            isAntiAlias = true
+        }
+        canvas.drawRoundRect(border, 24f, 24f, borderPaint)
+
+        val isLandscape = w > h
+        if (isLandscape) {
+            renderLandscapeTwoColumn(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#FFD54F"))
+        } else {
+            renderPortraitStandard(canvas, w, h, anime, cover, opt, isDark = true, accentColor = Color.parseColor("#FFD54F"))
+        }
+    }
+
+    // Standard portrait renderer
+    private fun renderPortraitStandard(
+        canvas: Canvas, w: Int, h: Int, anime: AnimeEntity, cover: Bitmap?, opt: CardCustomization, isDark: Boolean, accentColor: Int
+    ) {
+        var currentY = 80f
+
+        // Optional Rafael Rank banner at top
+        if (opt.showRafaelRank && opt.rafaelRank != null) {
+            val badgePaint = TextPaint().apply {
+                color = accentColor
+                textSize = 30f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                isAntiAlias = true
+            }
+            drawCenteredText(canvas, "★ RAFAEL RANK #${opt.rafaelRank} ★", w, currentY, badgePaint, w - 120)
+            currentY += 50f
+        }
+
+        // Cover artwork
+        val coverW = (w * 0.44f).coerceIn(360f, 480f)
+        val coverH = coverW * 1.36f
+        val coverX = (w - coverW) / 2f
+
+        if (cover != null && opt.showCover) {
+            val coverRect = RectF(coverX, currentY, coverX + coverW, currentY + coverH)
+            drawRoundedBitmap(canvas, cover, coverRect, 20f)
+            currentY += coverH + 36f
+        } else if (opt.showCover) {
+            val coverRect = RectF(coverX, currentY, coverX + coverW, currentY + coverH)
+            val placeholder = Paint().apply { color = if (isDark) Color.parseColor("#211C33") else Color.parseColor("#E0DDEB") }
+            canvas.drawRoundRect(coverRect, 20f, 20f, placeholder)
+            currentY += coverH + 36f
+        }
+
+        // Rating & Stars
+        if (opt.showRating) {
+            val ratingStr = RatingFormatHelper.formatRating(anime.personalRating)
+            val scoreText = if (anime.personalRating != null) "★ $ratingStr / 10" else "Unrated"
+            val ratingPaint = TextPaint().apply {
+                color = accentColor
+                textSize = 40f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                isAntiAlias = true
+            }
+            drawCenteredText(canvas, scoreText, w, currentY, ratingPaint, w - 120)
+            currentY += 54f
+        }
+
+        // Title
+        val titlePaint = TextPaint().apply {
+            color = if (isDark) Color.WHITE else Color.parseColor("#1B1926")
+            textSize = 46f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             isAntiAlias = true
         }
-        drawCenteredText(canvas, "★ TOP RATED ANIME SELECTION ★", w, 120f, headerPaint, w - 160)
+        drawCenteredText(canvas, anime.title, w, currentY, titlePaint, w - 140)
+        currentY += 65f
 
-        // Cover
-        val coverW = 460f
-        val coverH = 620f
-        val coverX = (w - coverW) / 2f
-        val coverY = 180f
-        val coverRect = RectF(coverX, coverY, coverX + coverW, coverY + coverH)
+        // Status / Episodes / Year
+        val metaParts = mutableListOf<String>()
+        if (opt.showStatus) metaParts.add(anime.status.displayName)
+        if (opt.showEpisodes && anime.totalEpisodes > 0) metaParts.add("${anime.watchedEpisodes}/${anime.totalEpisodes} eps")
+        if (anime.releaseYear != null) metaParts.add("${anime.releaseYear}")
+        if (opt.showGenres && anime.genres.isNotEmpty()) metaParts.add(anime.genres.take(2).joinToString(", "))
 
-        if (cover != null) {
-            drawRoundedBitmap(canvas, cover, coverRect, 22f)
-            val coverBorder = Paint().apply {
-                color = Color.parseColor("#FFC837")
-                style = Paint.Style.STROKE
-                strokeWidth = 3f
+        if (metaParts.isNotEmpty()) {
+            val metaPaint = TextPaint().apply {
+                color = if (isDark) Color.parseColor("#9E98B3") else Color.parseColor("#69657A")
+                textSize = 28f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
-            canvas.drawRoundRect(coverRect, 22f, 22f, coverBorder)
+            drawCenteredText(canvas, metaParts.joinToString(" • "), w, currentY, metaPaint, w - 140)
+            currentY += 46f
         }
 
-        // Score Badge
-        val ratingY = coverY + coverH + 60f
-        drawRatingSection(canvas, w, ratingY, anime.personalRating, isDark = true, accentGold = true)
-
-        // Title
-        val titleY = ratingY + 90f
-        val titlePaint = TextPaint().apply {
-            color = Color.WHITE
-            textSize = 52f
-            typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD)
-            isAntiAlias = true
-        }
-        drawCenteredText(canvas, anime.title, w, titleY, titlePaint, w - 160)
-
-        // Excerpt
-        val excerpt = customExcerpt ?: anime.review.ifBlank { anime.notes }
-        if (excerpt.isNotBlank()) {
-            val quoteY = titleY + 80f
+        // Review excerpt
+        val excerpt = opt.customExcerpt ?: anime.review.ifBlank { anime.notes }
+        if (opt.showReview && excerpt.isNotBlank()) {
             val quotePaint = TextPaint().apply {
-                color = Color.parseColor("#E6D7AD")
-                textSize = 34f
+                color = if (isDark) Color.parseColor("#E4E0F0") else Color.parseColor("#343042")
+                textSize = 32f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
                 isAntiAlias = true
             }
-            drawCenteredText(canvas, "“${excerpt.take(150)}${if (excerpt.length > 150) "..." else ""}”", w, quoteY, quotePaint, w - 200)
+            drawCenteredText(canvas, "“${excerpt.take(160)}${if (excerpt.length > 160) "…" else ""}”", w, currentY, quotePaint, w - 180)
         }
 
-        // Footer
-        val footerY = h - 100f
-        val footerPaint = TextPaint().apply {
-            color = Color.parseColor("#B3A278")
-            textSize = 28f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
-            isAntiAlias = true
+        // Footer Branding
+        if (opt.showBranding) {
+            val footerPaint = TextPaint().apply {
+                color = if (isDark) Color.parseColor("#7E7699") else Color.parseColor("#8E8B99")
+                textSize = 26f
+                isAntiAlias = true
+            }
+            val dateStr = if (opt.showDate && anime.completionDate != null) {
+                " • " + SimpleDateFormat("MMM yyyy", Locale.US).format(Date(anime.completionDate))
+            } else ""
+            drawCenteredText(canvas, "AniLog • Personal Anime Library$dateStr", w, h - 80f, footerPaint, w - 100)
         }
-        drawCenteredText(canvas, "AniLog • Hall of Fame Collection", w, footerY, footerPaint, w - 100)
     }
 
-    private fun drawRatingSection(
-        canvas: Canvas,
-        w: Int,
-        y: Float,
-        rating: Float?,
-        isDark: Boolean,
-        accentGold: Boolean = false
+    // Landscape two-column renderer
+    private fun renderLandscapeTwoColumn(
+        canvas: Canvas, w: Int, h: Int, anime: AnimeEntity, cover: Bitmap?, opt: CardCustomization, isDark: Boolean, accentColor: Int
     ) {
-        val ratingStr = if (rating != null) "★ ${"%.1f".format(rating)} / 10" else "Unrated"
-        val paint = TextPaint().apply {
-            color = when {
-                accentGold -> Color.parseColor("#FFC837")
-                isDark -> Color.parseColor("#B39DDB")
-                else -> Color.parseColor("#6200EA")
+        val colLeftW = w * 0.40f
+        val colRightX = colLeftW + 40f
+        val colRightW = w - colRightX - 60f
+
+        // Draw Cover in left column
+        val coverW = (colLeftW - 80f).coerceAtMost(h * 0.70f)
+        val coverH = coverW * 1.34f
+        val coverX = 60f
+        val coverY = (h - coverH) / 2f
+
+        if (cover != null && opt.showCover) {
+            drawRoundedBitmap(canvas, cover, RectF(coverX, coverY, coverX + coverW, coverY + coverH), 20f)
+        }
+
+        var textY = 120f
+
+        if (opt.showRafaelRank && opt.rafaelRank != null) {
+            val badgePaint = TextPaint().apply {
+                color = accentColor
+                textSize = 28f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                isAntiAlias = true
             }
-            textSize = 42f
+            drawLeftAlignedText(canvas, "★ RAFAEL RANK #${opt.rafaelRank} ★", colRightX, textY, badgePaint, colRightW.toInt())
+            textY += 44f
+        }
+
+        // Rating
+        if (opt.showRating) {
+            val ratingStr = RatingFormatHelper.formatRating(anime.personalRating)
+            val scoreText = if (anime.personalRating != null) "★ $ratingStr / 10" else "Unrated"
+            val ratingPaint = TextPaint().apply {
+                color = accentColor
+                textSize = 36f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                isAntiAlias = true
+            }
+            drawLeftAlignedText(canvas, scoreText, colRightX, textY, ratingPaint, colRightW.toInt())
+            textY += 50f
+        }
+
+        // Title
+        val titlePaint = TextPaint().apply {
+            color = if (isDark) Color.WHITE else Color.parseColor("#1B1926")
+            textSize = 48f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             isAntiAlias = true
         }
-        drawCenteredText(canvas, ratingStr, w, y, paint, w - 100)
+        drawLeftAlignedText(canvas, anime.title, colRightX, textY, titlePaint, colRightW.toInt())
+        textY += 70f
+
+        // Review
+        val excerpt = opt.customExcerpt ?: anime.review.ifBlank { anime.notes }
+        if (opt.showReview && excerpt.isNotBlank()) {
+            val quotePaint = TextPaint().apply {
+                color = if (isDark) Color.parseColor("#E0DCF0") else Color.parseColor("#343042")
+                textSize = 30f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
+                isAntiAlias = true
+            }
+            drawLeftAlignedText(canvas, "“${excerpt.take(180)}${if (excerpt.length > 180) "…" else ""}”", colRightX, textY, quotePaint, colRightW.toInt())
+        }
+
+        // Footer
+        if (opt.showBranding) {
+            val footerPaint = TextPaint().apply {
+                color = if (isDark) Color.parseColor("#7E7699") else Color.parseColor("#8E8B99")
+                textSize = 24f
+                isAntiAlias = true
+            }
+            drawLeftAlignedText(canvas, "AniLog • Personal Anime Library", colRightX, h - 80f, footerPaint, colRightW.toInt())
+        }
     }
 
-    private fun drawCenteredText(
-        canvas: Canvas,
-        text: String,
-        canvasWidth: Int,
-        y: Float,
-        paint: TextPaint,
-        maxWidth: Int
-    ) {
+    private fun drawCenteredText(canvas: Canvas, text: String, canvasWidth: Int, y: Float, paint: TextPaint, maxWidth: Int) {
         val staticLayout = StaticLayout.Builder.obtain(text, 0, text.length, paint, maxWidth)
             .setAlignment(Layout.Alignment.ALIGN_CENTER)
             .setLineSpacing(4f, 1f)
@@ -520,6 +526,19 @@ object ReviewCardRenderer {
 
         canvas.save()
         canvas.translate((canvasWidth - maxWidth) / 2f, y)
+        staticLayout.draw(canvas)
+        canvas.restore()
+    }
+
+    private fun drawLeftAlignedText(canvas: Canvas, text: String, x: Float, y: Float, paint: TextPaint, maxWidth: Int) {
+        val staticLayout = StaticLayout.Builder.obtain(text, 0, text.length, paint, maxWidth)
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+            .setLineSpacing(4f, 1f)
+            .setIncludePad(false)
+            .build()
+
+        canvas.save()
+        canvas.translate(x, y)
         staticLayout.draw(canvas)
         canvas.restore()
     }
@@ -537,9 +556,6 @@ object ReviewCardRenderer {
         output.recycle()
     }
 
-    /**
-     * Save generated review card bitmap into app cache and return FileProvider content URI
-     */
     suspend fun saveCardToCache(context: Context, bitmap: Bitmap): Uri = withContext(Dispatchers.IO) {
         val cardsDir = File(context.cacheDir, "cards").apply { mkdirs() }
         val file = File(cardsDir, "anilog_card_${System.currentTimeMillis()}.png")
@@ -549,12 +565,9 @@ object ReviewCardRenderer {
         FileProvider.getUriForFile(context, "com.anilog.omor.dev.fileprovider", file)
     }
 
-    /**
-     * Save card to permanent app storage or downloads
-     */
     suspend fun saveCardPermanently(context: Context, bitmap: Bitmap): File = withContext(Dispatchers.IO) {
         val exportDir = File(context.filesDir, "saved_cards").apply { mkdirs() }
-        val file = File(exportDir, "AniLog_Review_${System.currentTimeMillis()}.png")
+        val file = File(exportDir, "AniLog_Card_${System.currentTimeMillis()}.png")
         FileOutputStream(file).use { out ->
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
         }

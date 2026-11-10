@@ -1,6 +1,7 @@
 package com.anilog.omor.dev.domain.model
 
 enum class SortOption(val displayName: String) {
+    RAFAEL_RANKING("Rafael Smart Ranking"),
     HIGHEST_RATED("Highest Rated"),
     LOWEST_RATED("Lowest Rated"),
     RECENTLY_ADDED("Recently Added"),
@@ -11,7 +12,7 @@ enum class SortOption(val displayName: String) {
 
     companion object {
         fun fromString(value: String?): SortOption {
-            return entries.firstOrNull { it.name.equals(value, ignoreCase = true) } ?: HIGHEST_RATED
+            return entries.firstOrNull { it.name.equals(value, ignoreCase = true) } ?: RAFAEL_RANKING
         }
     }
 }

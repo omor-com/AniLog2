@@ -1,0 +1,132 @@
+<resources>
+    <string name="app_name">AniLog</string>
+    <string name="tagline">Your Anime. Your Memories. Your Ratings.</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">হোম</string>
+    <string name="nav_library">অ্যানিমে লাইব্রেরি</string>
+    <string name="nav_watchlist">ওয়াচলিস্ট</string>
+    <string name="nav_collections">কালেকশন</string>
+    <string name="nav_stats">পরিসংখ্যান</string>
+    <string name="nav_settings">সেটিংস</string>
+    
+    <!-- Actions -->
+    <string name="action_add_anime">অ্যানিমে যোগ করুন</string>
+    <string name="action_edit_anime">অ্যানিমে সম্পাদনা করুন</string>
+    <string name="action_delete_anime">অ্যানিমে মুছে ফেলুন</string>
+    <string name="action_save">সংরক্ষণ করুন</string>
+    <string name="action_cancel">বাতিল</string>
+    <string name="action_close">বন্ধ করুন</string>
+    <string name="action_delete">মুছুন</string>
+    <string name="action_clear">মুছে ফেলুন</string>
+    <string name="action_reset">রিসেট</string>
+    <string name="action_apply">প্রয়োগ করুন</string>
+    <string name="action_share">শেয়ার করুন</string>
+    <string name="action_share_anime">অ্যানিমে শেয়ার করুন</string>
+    <string name="action_sharing_studio">শেয়ারিং স্টুডিও</string>
+    <string name="action_compare">তুলনা করুন</string>
+    <string name="action_copy">কপি করুন</string>
+    <string name="action_export">এক্সপোর্ট</string>
+    <string name="action_bulk_import">একসঙ্গে অনেক অ্যানিমে যোগ করুন</string>
+    
+    <!-- Rating -->
+    <string name="custom_rating">নিজের মতো রেটিং দিন</string>
+    <string name="personal_rating">ব্যক্তিগত রেটিং</string>
+    <string name="unrated">রেটিং দেওয়া হয়নি</string>
+    <string name="rating_range_hint">দশমিক রেটিং দিন (০.০ থেকে ১০.০)</string>
+    <string name="invalid_rating_error">০ থেকে ১০ এর মধ্যে একটি সঠিক রেটিং লিখুন</string>
+    <string name="clear_rating">মুছুন (রেটিং ছাড়া)</string>
+    
+    <!-- Content fields -->
+    <string name="label_anime_title">অ্যানিমের নাম</string>
+    <string name="label_original_title">মূল / জাপানি নাম</string>
+    <string name="label_watching_status">দেখার অবস্থা</string>
+    <string name="label_watched_episodes">দেখা হয়েছে</string>
+    <string name="label_total_episodes">মোট পর্ব</string>
+    <string name="label_release_year">মুক্তির বছর</string>
+    <string name="label_personal_review">ব্যক্তিগত রিভিউ</string>
+    <string name="label_personal_notes">ব্যক্তিগত নোট ও তথ্য</string>
+    <string name="label_genres">ঘরানা (জনরা)</string>
+    <string name="label_tags">ট্যাগ</string>
+    <string name="label_favorites">পছন্দের তালিকা</string>
+    <string name="label_add_favorites">পছন্দে যোগ করুন</string>
+    
+    <!-- Status -->
+    <string name="status_watching">দেখছি</string>
+    <string name="status_completed">সম্পূর্ণ দেখেছি</string>
+    <string name="status_plan_to_watch">দেখার ইচ্ছে আছে</string>
+    <string name="status_on_hold">সাময়িক স্থগিত</string>
+    <string name="status_dropped">দেখা বাদ দিয়েছি</string>
+    
+    <!-- Search & Filters -->
+    <string name="search_placeholder">নাম, রিভিউ, ঘরানা বা ট্যাগ দিয়ে খুঁজুন…</string>
+    <string name="filter_all">সব</string>
+    <string name="filter_minimum_rating">সর্বনিম্ন রেটিং</string>
+    <string name="filter_reset_all">সব ফিল্টার মুছুন</string>
+    <string name="filter_apply">ফিল্টার প্রয়োগ করুন</string>
+    
+    <!-- Rafael Ranking Engine -->
+    <string name="rafael_title">রাফায়েল বুদ্ধিমান র‍্যাঙ্কিং</string>
+    <string name="rafael_subtitle">ব্যবহারকারীর পছন্দভিত্তিক স্বয়ংক্রিয় র‍্যাঙ্কিং ইঞ্জিন</string>
+    <string name="rafael_enable">রাফায়েল ইঞ্জিন চালু রাখুন</string>
+    <string name="rafael_signal_favorites">পছন্দের তালিকাকে অগ্রাধিকার দিন</string>
+    <string name="rafael_signal_completion">সম্পূর্ণ দেখাকে অগ্রাধিকার দিন</string>
+    <string name="rafael_signal_review_depth">বিস্তারিত রিভিউকে অগ্রাধিকার দিন</string>
+    <string name="rafael_signal_progress">পর্ব সমাপ্তির অগ্রগতি সংকেত</string>
+    <string name="rafael_reset_prefs">সংরক্ষিত পছন্দসমূহ রিসেট করুন</string>
+    <string name="rafael_explanation_title">কেন এটি এই অবস্থানে রাখা হয়েছে?</string>
+    <string name="rafael_reason_favorite">উভয় অ্যানিমের রেটিং সমান। আপনি এটিকে পছন্দের তালিকায় রেখেছেন।</string>
+    <string name="rafael_reason_explicit">আপনি সরাসরি এটিকে এগিয়ে রাখতে পছন্দ করেছেন।</string>
+    <string name="rafael_reason_review">উভয়ের রেটিং সমান। এই এন্ট্রিতে আপনি বিস্তারিত ব্যক্তিগত মতামত লিখেছেন।</string>
+    <string name="rafael_reason_completed">উভয়ের রেটিং সমান। আপনি এই অ্যানিমেটি সম্পূর্ণ দেখেছেন।</string>
+    <string name="rafael_reason_progress">উভয়ের রেটিং সমান। বেশি পর্ব সম্পন্ন করার রেকর্ড রয়েছে।</string>
+    <string name="rafael_reason_stable">অতিরিক্ত কোনো পছন্দের প্রমাণ না থাকায় পূর্বের স্বাভাবিক ক্রমটি বজায় রাখা হয়েছে।</string>
+    
+    <!-- Passcode & Security -->
+    <string name="passcode_title">AniLog সুরক্ষিত</string>
+    <string name="passcode_prompt">আপনার ব্যক্তিগত জার্নাল খুলতে ৪ সংখ্যার পাসকোড দিন</string>
+    <string name="forgot_passcode">পাসকোড ভুলে গেছেন?</string>
+    <string name="reset_passcode_confirm_title">ভুলে যাওয়া পাসকোড রিসেট করবেন?</string>
+    <string name="reset_passcode_warning">পাসকোড রিসেট শুরু করলে একটি বাধ্যতামূলক নিরাপত্তা অপেক্ষা শুরু হবে। ব্যক্তিগত তথ্যের সুরক্ষার্থে নির্ধারিত সময় শেষ না হওয়া পর্যন্ত জার্নালে প্রবেশ সাময়িক বন্ধ থাকবে।</string>
+    <string name="recovery_active_title">নিরাপত্তা অপেক্ষা সময় সক্রিয়</string>
+    <string name="recovery_active_message">পাসকোড রিসেটের অনুরোধ করা হয়েছে। আপনার ব্যক্তিগত তথ্যের সুরক্ষার জন্য কাউন্টডাউন শেষ না হওয়া পর্যন্ত অ্যাক্সেস বন্ধ রাখা হয়েছে।</string>
+    <string name="recovery_time_remaining">বাকি সময়</string>
+    <string name="recovery_duration_setting">পাসকোড রিকভারি অপেক্ষার সময়</string>
+    <string name="recovery_duration_minutes">%1$d মিনিট</string>
+    <string name="recovery_completed_msg">রিকভারি সময় শেষ হয়েছে। এখন আপনি নতুন পাসকোড সেট করতে পারেন অথবা প্রবেশ করতে পারেন।</string>
+    
+    <!-- Language Selection -->
+    <string name="language_selection_title">ভাষা নির্বাচন করুন / Choose Language</string>
+    <string name="language_selection_subtitle">আপনার পছন্দের ভাষা নির্বাচন করুন। সেটিংস থেকে এটি যেকোনো সময় পরিবর্তন করতে পারবেন।</string>
+    <string name="language_english">English</string>
+    <string name="language_bengali">বাংলা</string>
+    <string name="language_continue">এগিয়ে যান / Continue</string>
+    <string name="setting_language">ভাষা / Language</string>
+    
+    <!-- Sharing Studio -->
+    <string name="share_as_card">শেয়ার কার্ড তৈরি করুন</string>
+    <string name="share_image">কার্ড শেয়ার করুন</string>
+    <string name="save_image">ছবি সংরক্ষণ করুন</string>
+    <string name="share_text">টেক্সট শেয়ার করুন</string>
+    <string name="share_image_and_text">ছবি ও টেক্সট উভয় শেয়ার করুন</string>
+    <string name="card_aspect_portrait">পোর্ট্রেট (৪:৫)</string>
+    <string name="card_aspect_square">স্কয়ার (১:১)</string>
+    <string name="card_aspect_landscape">ল্যান্ডস্কেপ (১৬:৯)</string>
+    
+    <!-- Bulk Import -->
+    <string name="bulk_import_title">একসঙ্গে অনেক অ্যানিমে যোগ করুন</string>
+    <string name="bulk_import_hint">অ্যানিমের নাম পেস্ট করুন (প্রতি লাইনে একটি, নম্বরযুক্ত, বা তালিকা আকারে)…</string>
+    <string name="bulk_import_parse_btn">তালিকা যাচাই করুন</string>
+    <string name="bulk_import_preview_title">যাচাই ও যোগ নিশ্চিত করুন</string>
+    <string name="bulk_import_confirm_btn">%1$dটি অ্যানিমে যোগ করুন</string>
+    <string name="bulk_import_duplicate_badge">লাইব্রেরিতে ইতিমধ্যে রয়েছে</string>
+    <string name="bulk_import_success">সফলভাবে %1$dটি অ্যানিমে যোগ করা হয়েছে</string>
+    
+    <!-- Export Formats -->
+    <string name="export_formats_title">অ্যানিমে তালিকা এক্সপোর্ট ও কপি</string>
+    <string name="format_a_names">ফরম্যাট ক — শুধু নাম</string>
+    <string name="format_b_ratings">ফরম্যাট খ — নাম ও রেটিং</string>
+    <string name="format_c_reviews">ফরম্যাট গ — নাম, রেটিং ও রিভিউ</string>
+    <string name="format_d_json">ফরম্যাট ঘ — সম্পূর্ণ স্ট্রাকচার্ড JSON</string>
+    <string name="copied_to_clipboard">ক্লিপবোর্ডে কপি করা হয়েছে!</string>
+</resources>
