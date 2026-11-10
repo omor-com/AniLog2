@@ -147,3 +147,9 @@ dependencies {
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
 }
+
+// Disable KSP for unit test compilation to avoid headless AWT bug in CI
+tasks.matching { it.name.startsWith("ksp") && it.name.contains("UnitTest", ignoreCase = true) }.configureEach {
+  enabled = false
+}
+
